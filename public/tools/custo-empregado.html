@@ -1,0 +1,1385 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de Custo de Empregado — Mensal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fflate@0.8.2/umd/index.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-page:      #f4f5f7;
+    --card-bg:      #ffffff;
+    --card-border:  #e5e7eb;
+
+    --ink:          #0f172a;
+    --ink-soft:     #334155;
+    --ink-muted:    #6b7280;
+
+    --header-bg:    #1f2937;
+    --header-text:  #ffffff;
+    --section-bg:   #eef2ff;
+    --section-ink:  #1f2937;
+
+    --row-border:   #f1f5f9;
+    --row-strong:   #e5e7eb;
+    --footer-bg:    #f3f4f6;
+
+    --input-border: #d1d5db;
+    --input-bg:     #fff;
+
+    --green:        #16a34a;
+    --green-bright: #22c55e;
+    --green-hover:  #15803d;
+    --red:          #dc2626;
+    --red-hover:    #b91c1c;
+    --purple:       #9333ea;
+    --orange:       #ea580c;
+    --blue:         #2563eb;
+    --blue-hover:   #1d4ed8;
+
+    --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 24px -8px rgba(0,0,0,.06);
+  }
+
+  html, body {
+    background: var(--bg-page);
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: var(--ink);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .page {
+    padding: 32px 16px 64px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 1280px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 36px 40px 40px;
+  }
+
+  /* título */
+  h1.title {
+    font-weight: 700;
+    font-size: 28px;
+    letter-spacing: -0.01em;
+    text-align: center;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+  p.subtitle {
+    text-align: center;
+    color: var(--ink-muted);
+    font-size: 13px;
+    margin-bottom: 28px;
+    font-weight: 400;
+  }
+
+  /* ações topo */
+  .top-actions {
+    margin-bottom: 22px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background .15s, transform .1s;
+    color: #fff;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn svg { width: 16px; height: 16px; }
+
+  .btn-export    { background: var(--green-bright); }
+  .btn-export:hover    { background: var(--green); }
+  .btn-print     { background: var(--blue); }
+  .btn-print:hover     { background: var(--blue-hover); }
+  .btn-limpar    { background: var(--red); }
+  .btn-limpar:hover    { background: var(--red-hover); }
+
+  /* seções */
+  .section {
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 22px;
+    background: #fff;
+  }
+  .section-header {
+    background: var(--header-bg);
+    color: var(--header-text);
+    font-weight: 700;
+    font-size: 14px;
+    padding: 14px 18px;
+    letter-spacing: .01em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-header .badge {
+    background: rgba(255,255,255,.18);
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .section-body { padding: 20px 22px; }
+
+  /* grid de inputs */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px 22px;
+  }
+
+  /* grid cadastro: 2 colunas (campos | adicionais) */
+  .grid-cadastro {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 40px;
+    align-items: start;
+  }
+  .col-esquerda, .col-direita {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .adicionais-titulo {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--header-bg);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    border-bottom: 1px solid var(--row-strong);
+    padding-bottom: 6px;
+    margin-bottom: 0;
+  }
+  @media (max-width: 700px) {
+    .grid-cadastro { grid-template-columns: 1fr; gap: 16px; }
+  }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    letter-spacing: .01em;
+  }
+  .field .help {
+    font-size: 11px;
+    color: var(--ink-muted);
+    font-weight: 400;
+    margin-top: 2px;
+  }
+
+  input[type="number"],
+  input[type="text"],
+  select {
+    font-family: inherit;
+    font-size: 14px;
+    padding: 9px 12px;
+    border: 1px solid var(--input-border);
+    border-radius: 7px;
+    background: var(--input-bg);
+    color: var(--ink);
+    width: 100%;
+    transition: border-color .15s, box-shadow .15s;
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+  }
+  input[type="number"]:hover,
+  input[type="text"]:hover,
+  select:hover { border-color: #9ca3af; }
+  input[type="number"]:focus,
+  input[type="text"]:focus,
+  select:focus {
+    outline: none;
+    border-color: var(--green-bright);
+    box-shadow: 0 0 0 3px rgba(34,197,94,.15);
+  }
+  input[readonly] {
+    background: #f9fafb;
+    color: var(--ink-soft);
+    font-weight: 600;
+    cursor: default;
+  }
+
+  /* destaque remuneração bruta */
+  .field.highlight input { 
+    background: #ecfdf5;
+    border-color: var(--green-bright);
+    color: var(--green-hover);
+    font-weight: 700;
+    font-size: 15px;
+  }
+  .field.highlight label { color: var(--green-hover); }
+
+  /* checkbox line */
+  .check-line {
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    padding: 9px 12px;
+    border: 1px solid var(--input-border);
+    border-radius: 7px;
+    background: var(--input-bg);
+    transition: border-color .15s, background .15s;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    color: var(--ink) !important;
+    user-select: none;
+    margin-top: auto;
+  }
+  .check-line:hover { border-color: #9ca3af; }
+  .check-line input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--green-bright);
+    cursor: pointer;
+    margin: 0;
+  }
+  .check-line input[type="checkbox"]:checked + span {
+    color: var(--green-hover);
+    font-weight: 600;
+  }
+  .field:has(.check-line input:checked) .check-line {
+    background: #ecfdf5;
+    border-color: var(--green-bright);
+  }
+
+  /* spacer para forçar quebra de linha no grid */
+  .grid-spacer {
+    grid-column: 1 / -1;
+    height: 0;
+    border-top: 1px dashed var(--card-border);
+    margin: 4px 0;
+  }
+
+  /* toggle radio */
+  .radio-group {
+    display: inline-flex;
+    background: #f3f4f6;
+    border: 1px solid var(--input-border);
+    border-radius: 7px;
+    padding: 3px;
+    gap: 2px;
+    width: 100%;
+  }
+  .radio-group label {
+    flex: 1;
+    text-align: center;
+    padding: 7px 10px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-muted);
+    transition: background .15s, color .15s;
+    letter-spacing: 0;
+  }
+  .radio-group input[type="radio"] { display: none; }
+  .radio-group input[type="radio"]:checked + span {
+    background: #fff;
+    color: var(--ink);
+    box-shadow: 0 1px 2px rgba(0,0,0,.06);
+  }
+  .radio-group span {
+    display: block;
+    padding: 7px 10px;
+    border-radius: 5px;
+    transition: background .15s, color .15s;
+  }
+
+  /* mode RAT */
+  .rat-mode {
+    grid-column: 1 / -1;
+    background: #f9fafb;
+    border: 1px dashed var(--card-border);
+    border-radius: 8px;
+    padding: 14px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+  .rat-mode .label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    margin-right: 4px;
+  }
+  .rat-mode .radio-group { max-width: 360px; flex: 0 0 auto; }
+
+  .group-title {
+    grid-column: 1 / -1;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--header-bg);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    border-bottom: 1px solid var(--row-strong);
+    padding-bottom: 6px;
+    margin-top: 6px;
+  }
+  .group-title:first-child { margin-top: 0; }
+
+  /* tabela demonstrativo */
+  .table-wrap {
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--card-border);
+    margin-top: 8px;
+  }
+  table.demo { width: 100%; border-collapse: collapse; background: #fff; }
+  table.demo thead th {
+    background: var(--blue);
+    color: #fff;
+    font-weight: 700;
+    font-size: 12px;
+    padding: 12px 12px;
+    text-align: center;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+  }
+  table.demo tbody td {
+    padding: 11px 14px;
+    font-size: 13.5px;
+    border-bottom: 1px solid var(--row-border);
+    vertical-align: middle;
+    background: #fff;
+    font-variant-numeric: tabular-nums;
+  }
+  table.demo tbody tr.group-row td {
+    background: #eef0f3;
+    font-weight: 700;
+    color: var(--ink);
+    font-size: 12.5px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    padding: 10px 14px;
+  }
+  table.demo tbody tr.subtotal-row td {
+    background: #e0e7ff;
+    font-weight: 700;
+    color: #1e3a8a;
+  }
+  table.demo tbody td.right { text-align: right; }
+  table.demo tbody td.center { text-align: center; }
+  table.demo tbody td.label { text-align: left; }
+  table.demo tbody tr.empty-section td {
+    text-align: center;
+    color: var(--ink-muted);
+    font-style: italic;
+    font-size: 12.5px;
+    padding: 8px;
+    background: #fafafa;
+  }
+
+  table.demo tfoot tr td {
+    padding: 14px 14px;
+    font-weight: 700;
+    background: var(--header-bg);
+    color: #fff;
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+  }
+  table.demo tfoot tr.subtotal-mensal td {
+    background: #4b5563;
+    color: #fff;
+  }
+  table.demo tfoot tr td.right { text-align: right; }
+  table.demo tfoot tr td.label { text-align: left; }
+
+  .info-box {
+    background: #fffbeb;
+    border: 1px solid #fcd34d;
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 12.5px;
+    color: #78350f;
+    line-height: 1.5;
+    margin-top: 14px;
+    font-weight: 500;
+  }
+  .info-box strong { color: #78350f; font-weight: 700; }
+  .info-box ul { margin: 6px 0 0 18px; }
+  .info-box li { margin-bottom: 4px; }
+
+  @media (max-width: 900px) {
+    .card { padding: 22px 16px; }
+    h1.title { font-size: 22px; }
+    .section-body { padding: 16px 14px; }
+    .grid { grid-template-columns: 1fr 1fr; }
+    .table-wrap { overflow-x: auto; }
+    table.demo { min-width: 640px; }
+  }
+  @media (max-width: 540px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body><nav id="dp-panel-nav" style="position:fixed;top:0;left:0;right:0;z-index:99999;height:44px;background:#1f2937;display:flex;align-items:center;padding:0 20px;box-shadow:0 1px 4px rgba(0,0,0,.2);font-family:'Poppins',-apple-system,sans-serif;"><a href="/" style="color:#fff;text-decoration:none;font-weight:600;font-size:13px;display:inline-flex;align-items:center;gap:8px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>Painel DP</a><span style="margin-left:auto;color:rgba(255,255,255,.45);font-size:11px;font-weight:500;letter-spacing:.04em;">AUTOMAÇÕES DP</span></nav><div style="height:44px;"></div>
+
+<div class="page">
+  <div class="card">
+
+    <h1 class="title">Calculadora de Custo de Empregado</h1>
+
+    <div class="top-actions">
+      <button class="btn btn-export" id="btnExport" title="Gera uma planilha Excel com fórmulas">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Planilha Excel
+      </button>
+      <button class="btn btn-limpar" id="btnLimpar" title="Restaura todos os campos aos valores padrão">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+        </svg>
+        Limpar
+      </button>
+    </div>
+
+    <!-- ━━━━━━━━ 1. DADOS CADASTRAIS ━━━━━━━━ -->
+    <section class="section">
+      <div class="section-header">
+        <span class="badge">1</span>
+        Dados Cadastrais
+      </div>
+      <div class="section-body">
+        <div class="grid-cadastro">
+          <div class="col-esquerda">
+            <div class="field">
+              <label for="regime">Regime Tributário</label>
+              <select id="regime">
+                <option value="real_presumido" selected>Lucro Real / Presumido</option>
+                <option value="simples_iv">Simples Nacional — Anexo IV</option>
+                <option value="simples_outros">Simples Nacional — Anexos I, II, III ou V</option>
+              </select>
+              <span class="help">Anexos I/II/III/V: CPP e Terceiros já estão no DAS</span>
+            </div>
+
+            <div class="field">
+              <label for="salMin">Salário Mínimo (R$)</label>
+              <input type="number" id="salMin" value="1621.00" step="0.01" min="0">
+            </div>
+
+            <div class="field">
+              <label for="salBase">Salário Base do Funcionário (R$)</label>
+              <input type="number" id="salBase" value="" step="0.01" min="0" placeholder="0,00">
+            </div>
+          </div>
+
+          <div class="col-direita">
+            <div class="adicionais-titulo">Adicionais</div>
+
+            <div class="field">
+              <label class="check-line">
+                <input type="checkbox" id="chkInsal">
+                <span>Adicional de Insalubridade</span>
+              </label>
+              <select id="insal" style="display:none;">
+                <option value="10" selected>10% — Grau Mínimo</option>
+                <option value="20">20% — Grau Médio</option>
+                <option value="40">40% — Grau Máximo</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label class="check-line">
+                <input type="checkbox" id="chkPeric">
+                <span>Adicional de Periculosidade</span>
+              </label>
+            </div>
+
+            <div class="field highlight">
+              <label for="brutoTotal">Remuneração Bruta Total (R$)</label>
+              <input type="text" id="brutoTotal" readonly>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ━━━━━━━━ 2. ALÍQUOTAS PATRONAIS ━━━━━━━━ -->
+    <section class="section">
+      <div class="section-header">
+        <span class="badge">2</span>
+        Alíquotas Patronais
+      </div>
+      <div class="section-body">
+        <div class="grid">
+
+          <div class="field" id="fieldGilratDireto">
+            <label for="gilratDireto">GILRAT efetivo (%) — RAT × FAP</label>
+            <input type="number" id="gilratDireto" value="1.50" step="0.01" min="0" max="6">
+          </div>
+
+          <div class="field">
+            <label for="aliqInss">INSS Patronal — CPP (%)</label>
+            <input type="number" id="aliqInss" value="20.00" step="0.01" min="0">
+          </div>
+
+          <div class="field">
+            <label for="aliqTerc">Terceiros / Sistema S (%)</label>
+            <input type="number" id="aliqTerc" value="5.80" step="0.01" min="0">
+            <span class="help">Varia por FPAS/CNAE (média 5,8%)</span>
+          </div>
+
+          <div class="field">
+            <label for="aliqFgts">FGTS Mensal (%)</label>
+            <input type="number" id="aliqFgts" value="8.00" step="0.01" min="0">
+          </div>
+
+          <div class="field">
+            <label for="aliqMulta">Multa Rescisória FGTS (%)</label>
+            <input type="number" id="aliqMulta" value="40.00" step="0.01" min="0">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ━━━━━━━━ 3. BENEFÍCIOS E OUTROS ━━━━━━━━ -->
+    <section class="section">
+      <div class="section-header">
+        <span class="badge">3</span>
+        Benefícios e Outros Custos
+      </div>
+      <div class="section-body">
+        <div class="grid">
+          <div class="field">
+            <label for="vtTotal">Vale-Transporte — Total Mensal (R$)</label>
+            <input type="number" id="vtTotal" value="0" step="0.01" min="0">
+            <span class="help">Custo total do VT antes do desconto do empregado</span>
+          </div>
+          <div class="field">
+            <label for="vtDesc">Desconto VT do Empregado (%)</label>
+            <input type="number" id="vtDesc" value="6.00" step="0.01" min="0" max="6">
+            <span class="help">Lei 7.418/85 — até 6% do salário básico</span>
+          </div>
+
+          <div class="field">
+            <label for="vrTotal">Vale-Refeição / Alimentação (R$)</label>
+            <input type="number" id="vrTotal" value="0" step="0.01" min="0">
+            <span class="help">Valor mensal total pago pela empresa</span>
+          </div>
+          <div class="field">
+            <label for="vrDesc">Desconto VR/VA do Empregado (%)</label>
+            <input type="number" id="vrDesc" value="0" step="0.01" min="0" max="20">
+            <span class="help">PAT (Lei 6.321/76) — desconto opcional, até 20%</span>
+          </div>
+
+          <div class="field">
+            <label for="planoSaude">Plano de Saúde (R$)</label>
+            <input type="number" id="planoSaude" value="0" step="0.01" min="0">
+            <span class="help">Custo mensal da empresa por funcionário</span>
+          </div>
+          <div class="field">
+            <label for="outros">Outros Benefícios (R$)</label>
+            <input type="number" id="outros" value="0" step="0.01" min="0">
+            <span class="help">Seguro de vida, auxílio creche, educação etc.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ━━━━━━━━ 4. DEMONSTRATIVO ━━━━━━━━ -->
+    <section class="section">
+      <div class="section-header">
+        <span class="badge">4</span>
+        Demonstrativo de Custos Mensais
+      </div>
+      <div class="section-body">
+        <div class="table-wrap">
+          <table class="demo">
+            <thead>
+              <tr>
+                <th style="width:42%;text-align:left;padding-left:18px;">Rubrica</th>
+                <th style="width:22%;">Base de Cálculo</th>
+                <th style="width:14%;">Alíquota</th>
+                <th style="width:22%;">Valor (R$)</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyDemo"></tbody>
+            <tfoot id="tfootDemo"></tfoot>
+          </table>
+        </div>
+
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   Calculadora de Custo de Empregado — Lógica + Exportação
+   ═══════════════════════════════════════════════════════════ */
+
+const els = {
+  // Dados cadastrais
+  regime:     document.getElementById('regime'),
+  salMin:     document.getElementById('salMin'),
+  salBase:    document.getElementById('salBase'),
+  chkInsal:   document.getElementById('chkInsal'),
+  insal:      document.getElementById('insal'),
+  chkPeric:   document.getElementById('chkPeric'),
+  brutoTotal: document.getElementById('brutoTotal'),
+  // Alíquotas
+  gilratDireto: document.getElementById('gilratDireto'),
+  aliqInss:   document.getElementById('aliqInss'),
+  aliqTerc:   document.getElementById('aliqTerc'),
+  aliqFgts:   document.getElementById('aliqFgts'),
+  aliqMulta:  document.getElementById('aliqMulta'),
+  // Benefícios
+  vtTotal:    document.getElementById('vtTotal'),
+  vtDesc:     document.getElementById('vtDesc'),
+  vrTotal:    document.getElementById('vrTotal'),
+  vrDesc:     document.getElementById('vrDesc'),
+  planoSaude: document.getElementById('planoSaude'),
+  outros:     document.getElementById('outros'),
+};
+
+/* ─── Helpers ─── */
+const BRL = v => 'R$ ' + (Number(v) || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+const PCT = v => (Number(v) || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '%';
+const num = el => Number((el.value || '0').toString().replace(',', '.')) || 0;
+
+/* ─── Toggles ─── */
+function toggleInsal() {
+  els.insal.style.display = els.chkInsal.checked ? '' : 'none';
+}
+
+/* ─── Atualização do regime: ajusta defaults de alíquotas ─── */
+function aplicarRegime() {
+  const r = els.regime.value;
+  if (r === 'simples_outros') {
+    // Simples Anexos I/II/III/V: CPP, Terceiros e GILRAT já estão no DAS → zerados na folha
+    els.aliqInss.value = '0.00';
+    els.aliqTerc.value = '0.00';
+    els.gilratDireto.value = '0.00';
+  } else if (r === 'simples_iv') {
+    // Anexo IV: paga CPP + GILRAT sobre a folha; Terceiros não
+    els.aliqInss.value = '20.00';
+    els.aliqTerc.value = '0.00';
+    els.gilratDireto.value = '1.50';
+  } else { // real_presumido
+    els.aliqInss.value = '20.00';
+    els.aliqTerc.value = '5.80';
+    els.gilratDireto.value = '1.50';
+  }
+}
+
+/* ─── Cálculo principal ─── */
+function calcular() {
+  // Bases
+  const salMin = num(els.salMin);
+  const salBase = num(els.salBase);
+  const insalPct = els.chkInsal.checked ? num(els.insal) : 0;
+  const pericPct = els.chkPeric.checked ? 30 : 0;
+
+  const vInsal = salMin * (insalPct / 100);
+  const vPeric = salBase * (pericPct / 100);
+  const bruto = salBase + vInsal + vPeric;
+  els.brutoTotal.value = BRL(bruto);
+
+  // Alíquotas — GILRAT (informado direto)
+  const gilrat = num(els.gilratDireto);
+
+  const aliqInss = num(els.aliqInss);
+  const aliqTerc = num(els.aliqTerc);
+  const aliqFgts = num(els.aliqFgts);
+  const aliqMulta = num(els.aliqMulta);
+
+  // 1. Encargos sociais diretos
+  const vInss = bruto * (aliqInss / 100);
+  const vTerc = bruto * (aliqTerc / 100);
+  const vGilrat = bruto * (gilrat / 100);
+  const vFgts = bruto * (aliqFgts / 100);
+  const subtEncargos = vInss + vTerc + vGilrat + vFgts;
+
+  // 2. Provisões (13º + Férias + 1/3)
+  const v13 = bruto * (8.3333 / 100);
+  const vFerias = bruto * (11.1111 / 100);
+  const baseProvisoes = v13 + vFerias;
+  const vFgtsProv = baseProvisoes * (aliqFgts / 100);
+  const aliqEncProv = aliqInss + aliqTerc + gilrat;
+  const vEncProv = baseProvisoes * (aliqEncProv / 100);
+  const subtProvisoes = v13 + vFerias + vFgtsProv + vEncProv;
+
+  // 3. Custos variáveis / Multa rescisória
+  const vAbono = bruto * (3.7037 / 100);
+  const fgtsTotalMensal = vFgts + vFgtsProv;
+  const vMulta = fgtsTotalMensal * (aliqMulta / 100);
+  const subtVariaveis = vAbono + vMulta;
+
+  // 4. Benefícios
+  const vtTotal = num(els.vtTotal);
+  const vtDescPct = num(els.vtDesc);
+  const vtDesc = Math.min(vtTotal, salBase * (vtDescPct / 100));
+  const vtLiq = vtTotal - vtDesc;
+
+  const vrTotal = num(els.vrTotal);
+  const vrDescPct = num(els.vrDesc);
+  const vrDesc = vrTotal * (vrDescPct / 100);
+  const vrLiq = vrTotal - vrDesc;
+
+  const plano = num(els.planoSaude);
+  const outros = num(els.outros);
+  const subtBeneficios = vtLiq + vrLiq + plano + outros;
+
+  // Totais
+  const totalMensal = bruto + subtEncargos;
+  const totalComProvisoes = totalMensal + subtProvisoes + subtVariaveis + subtBeneficios;
+
+  renderTabela({
+    bruto, vInss, vTerc, vGilrat, vFgts, subtEncargos,
+    v13, vFerias, baseProvisoes, vFgtsProv, vEncProv, subtProvisoes, aliqEncProv,
+    vAbono, vMulta, subtVariaveis, fgtsTotalMensal,
+    vtTotal, vtDesc, vtLiq, vrTotal, vrDesc, vrLiq, plano, outros, subtBeneficios,
+    totalMensal, totalComProvisoes,
+    aliqInss, aliqTerc, gilrat, aliqFgts, aliqMulta
+  });
+}
+
+function renderTabela(d) {
+  const tbody = document.getElementById('tbodyDemo');
+  const tfoot = document.getElementById('tfootDemo');
+
+  const linha = (label, base, aliq, valor, cls = '') => `
+    <tr class="${cls}">
+      <td class="label" style="padding-left:18px;">${label}</td>
+      <td class="right">${base != null ? BRL(base) : '—'}</td>
+      <td class="center">${aliq != null ? PCT(aliq) : '—'}</td>
+      <td class="right">${BRL(valor)}</td>
+    </tr>`;
+  const grupo = txt => `<tr class="group-row"><td colspan="4" style="padding-left:18px;">${txt}</td></tr>`;
+  const subtotal = (txt, v) => `
+    <tr class="subtotal-row">
+      <td class="label" colspan="3" style="padding-left:18px;text-align:left;font-weight:700;">${txt}</td>
+      <td class="right">${BRL(v)}</td>
+    </tr>`;
+
+  let html = '';
+
+  // Grupo 1
+  html += grupo('1 — Encargos Sociais Diretos');
+  html += linha('INSS Patronal (CPP)',          d.bruto, d.aliqInss,  d.vInss);
+  html += linha('Terceiros / Sistema S',         d.bruto, d.aliqTerc,  d.vTerc);
+  html += linha('GILRAT (RAT × FAP)',            d.bruto, d.gilrat,    d.vGilrat);
+  html += linha('FGTS — Depósito Mensal',        d.bruto, d.aliqFgts,  d.vFgts);
+  html += subtotal('Total Encargos Sociais Diretos', d.subtEncargos);
+
+  // Grupo 2
+  html += grupo('2 — Provisões (13º + Férias + 1/3)');
+  html += linha('Provisão 13º Salário',          d.bruto,        8.3333,  d.v13);
+  html += linha('Provisão Férias + 1/3',         d.bruto,        11.1111, d.vFerias);
+  html += linha('FGTS s/ Provisões',             d.baseProvisoes, d.aliqFgts, d.vFgtsProv);
+  html += linha('Encargos (INSS+Terc+GILRAT) s/ Provisões', d.baseProvisoes, d.aliqEncProv, d.vEncProv);
+  html += subtotal('Total Provisões', d.subtProvisoes);
+
+  // Grupo 3
+  html += grupo('3 — Custos Variáveis / Multa Rescisória');
+  html += linha('Abono Pecuniário + 1/3 (estimado)', d.bruto, 3.7037, d.vAbono);
+  html += linha('Multa Rescisória FGTS', d.fgtsTotalMensal, d.aliqMulta, d.vMulta);
+  html += subtotal('Total Custos Variáveis', d.subtVariaveis);
+
+  // Grupo 4 — Benefícios (só mostra se houver algum)
+  if (d.subtBeneficios > 0 || d.vtTotal > 0 || d.vrTotal > 0 || d.plano > 0 || d.outros > 0) {
+    html += grupo('4 — Benefícios e Outros (Custo Líquido)');
+    if (d.vtTotal > 0)
+      html += linha(`Vale-Transporte (− ${BRL(d.vtDesc)} desc. trab.)`, d.vtTotal, null, d.vtLiq);
+    if (d.vrTotal > 0)
+      html += linha(`Vale-Refeição / Alimentação (− ${BRL(d.vrDesc)} desc. trab.)`, d.vrTotal, null, d.vrLiq);
+    if (d.plano > 0)  html += linha('Plano de Saúde',     null, null, d.plano);
+    if (d.outros > 0) html += linha('Outros Benefícios',  null, null, d.outros);
+    html += subtotal('Total Benefícios (Líquido para Empresa)', d.subtBeneficios);
+  }
+
+  tbody.innerHTML = html;
+
+  // Footer
+  tfoot.innerHTML = `
+    <tr class="subtotal-mensal">
+      <td class="label" colspan="3" style="padding-left:18px;">Custo Mensal (Salário Bruto + Encargos Diretos)</td>
+      <td class="right">${BRL(d.totalMensal)}</td>
+    </tr>
+    <tr>
+      <td class="label" colspan="3" style="padding-left:18px;">Custo Total Mensal + Provisões + Variáveis + Benefícios</td>
+      <td class="right">${BRL(d.totalComProvisoes)}</td>
+    </tr>
+  `;
+}
+
+/* ─── Reset ─── */
+function limpar() {
+  els.regime.value = 'real_presumido';
+  els.salMin.value = '1621.00';
+  els.salBase.value = '';
+  els.chkInsal.checked = false;
+  els.insal.value = '10';
+  els.chkPeric.checked = false;
+  els.gilratDireto.value = '1.50';
+  els.aliqInss.value = '20.00';
+  els.aliqTerc.value = '5.80';
+  els.aliqFgts.value = '8.00';
+  els.aliqMulta.value = '40.00';
+  els.vtTotal.value = '0';
+  els.vtDesc.value = '6.00';
+  els.vrTotal.value = '0';
+  els.vrDesc.value = '0';
+  els.planoSaude.value = '0';
+  els.outros.value = '0';
+  toggleInsal();
+  calcular();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Exportação para Excel — planilha diagramada com fórmulas
+   ═══════════════════════════════════════════════════════════ */
+function exportarExcel() {
+  const wb = XLSX.utils.book_new();
+  const ws = {};
+
+  /* ─── Paleta (idêntica ao template) ─── */
+  const C = {
+    azulMarinho: '203764',
+    azulMedio:   '4472C4',
+    azulClaro:   'D9E1F2',
+    cinza:       'EDEDED',
+    amarelo:     'FFFFE0',
+    branco:      'FFFFFF',
+    preto:       '000000',
+    bordaSuave:  'BFBFBF',
+    bordaForte:  '000000'
+  };
+
+  /* ─── Estilos base — TUDO Verdana 9 ─── */
+  const fontBase   = {name:'Verdana', sz:9, color:{rgb:C.preto}};
+  const fontBold   = {name:'Verdana', sz:9, color:{rgb:C.preto}, bold:true};
+  const fontWhite  = {name:'Verdana', sz:9, color:{rgb:C.branco}, bold:true};
+  const fontAzul   = {name:'Verdana', sz:9, color:{rgb:C.azulMarinho}, bold:true};
+  const fontTitle  = {name:'Verdana', sz:9, color:{rgb:C.branco}, bold:true};
+  const fontIta    = {name:'Verdana', sz:9, color:{rgb:'666666'}, italic:true};
+
+  const borderThin = {style:'thin', color:{rgb:C.bordaSuave}};
+  const borderFull = {top:borderThin, bottom:borderThin, left:borderThin, right:borderThin};
+  const borderBot  = {bottom:{style:'medium', color:{rgb:C.azulMarinho}}};
+
+  // Estilo: título principal CUSTOS PATRONAIS
+  const sTitle = {
+    font: fontTitle,
+    fill: {patternType:'solid', fgColor:{rgb:C.azulMarinho}},
+    alignment: {horizontal:'center', vertical:'center'},
+    border: {top:{style:'thin',color:{rgb:C.bordaForte}},bottom:{style:'thin',color:{rgb:C.bordaForte}},left:{style:'thin',color:{rgb:C.bordaForte}},right:{style:'thin',color:{rgb:C.bordaForte}}}
+  };
+  // Estilo: header de seção (1. DADOS CADASTRAIS, 2. ALÍQUOTAS...)
+  const sSection = {
+    font: fontAzul,
+    alignment: {horizontal:'left', vertical:'center'},
+    border: borderBot
+  };
+  // Estilo: label (rótulo de input)
+  const sLabel = {
+    font: fontBold,
+    alignment: {horizontal:'left', vertical:'center'},
+    border: {right:{style:'thin',color:{rgb:C.bordaSuave}}}
+  };
+  // Estilo: valor input (amarelo claro)
+  const sInput = {
+    font: fontBase,
+    fill: {patternType:'solid', fgColor:{rgb:C.amarelo}},
+    alignment: {horizontal:'right', vertical:'center'},
+    border: borderFull
+  };
+  const sInputCenter = {
+    font: fontBase,
+    fill: {patternType:'solid', fgColor:{rgb:C.amarelo}},
+    alignment: {horizontal:'center', vertical:'center'},
+    border: borderFull
+  };
+  const sInputText = {
+    font: fontBase,
+    fill: {patternType:'solid', fgColor:{rgb:C.amarelo}},
+    alignment: {horizontal:'left', vertical:'center'},
+    border: borderFull
+  };
+  // Estilo: destaque remuneração bruta
+  const sDestaque = {
+    font: {...fontBold, color:{rgb:C.azulMarinho}},
+    fill: {patternType:'solid', fgColor:{rgb:C.azulClaro}},
+    alignment: {horizontal:'right', vertical:'center'},
+    border: {top:{style:'medium',color:{rgb:C.bordaForte}},bottom:{style:'medium',color:{rgb:C.bordaForte}},left:{style:'medium',color:{rgb:C.bordaForte}},right:{style:'medium',color:{rgb:C.bordaForte}}}
+  };
+  const sDestaqueLabel = {
+    font: {...fontBold, color:{rgb:'444444'}},
+    alignment: {horizontal:'right', vertical:'center'},
+    border: {top:{style:'medium',color:{rgb:C.bordaForte}},bottom:{style:'medium',color:{rgb:C.bordaForte}},left:{style:'medium',color:{rgb:C.bordaForte}},right:{style:'thin',color:{rgb:C.bordaSuave}}}
+  };
+  // Estilo: header de coluna da tabela (azul médio)
+  const sColHeader = {
+    font: fontWhite,
+    fill: {patternType:'solid', fgColor:{rgb:C.azulMedio}},
+    alignment: {horizontal:'center', vertical:'center'},
+    border: {top:{style:'thin',color:{rgb:C.bordaForte}},bottom:{style:'thin',color:{rgb:C.bordaForte}},left:{style:'thin',color:{rgb:C.bordaForte}},right:{style:'thin',color:{rgb:C.bordaForte}}}
+  };
+  // Estilo: linha de grupo (cinza)
+  const sGroup = {
+    font: fontBold,
+    fill: {patternType:'solid', fgColor:{rgb:C.cinza}},
+    alignment: {horizontal:'left', vertical:'center'},
+    border: {top:{style:'thin',color:{rgb:C.bordaForte}},bottom:{style:'thin',color:{rgb:C.bordaForte}},left:{style:'thin',color:{rgb:C.bordaForte}},right:{style:'thin',color:{rgb:C.bordaForte}}}
+  };
+  // Estilo: linha de rubrica
+  const sRubLabel = {
+    font: fontBase,
+    alignment: {horizontal:'left', vertical:'center'},
+    border: {right:{style:'thin',color:{rgb:C.bordaSuave}}, bottom:{style:'thin',color:{rgb:'D9D9D9'}}}
+  };
+  const sRubBase = {
+    font: fontBase,
+    alignment: {horizontal:'right', vertical:'center'},
+    border: {right:{style:'thin',color:{rgb:C.bordaSuave}}, bottom:{style:'thin',color:{rgb:'D9D9D9'}}}
+  };
+  const sRubAliq = {
+    font: fontBase,
+    alignment: {horizontal:'center', vertical:'center'},
+    border: {right:{style:'thin',color:{rgb:C.bordaSuave}}, bottom:{style:'thin',color:{rgb:'D9D9D9'}}}
+  };
+  // Estilo: subtotal (azul claro)
+  const sSubtotal = {
+    font: {...fontBold, color:{rgb:C.azulMarinho}},
+    fill: {patternType:'solid', fgColor:{rgb:C.azulClaro}},
+    alignment: {horizontal:'right', vertical:'center'},
+    border: {top:{style:'thin',color:{rgb:C.bordaForte}},bottom:{style:'thin',color:{rgb:C.bordaForte}},left:{style:'thin',color:{rgb:C.bordaForte}},right:{style:'thin',color:{rgb:C.bordaForte}}}
+  };
+  const sSubtotalLabel = {
+    font: {...fontBold, color:{rgb:C.azulMarinho}},
+    fill: {patternType:'solid', fgColor:{rgb:C.azulClaro}},
+    alignment: {horizontal:'left', vertical:'center'},
+    border: {top:{style:'thin',color:{rgb:C.bordaForte}},bottom:{style:'thin',color:{rgb:C.bordaForte}},left:{style:'thin',color:{rgb:C.bordaForte}},right:{style:'thin',color:{rgb:C.bordaSuave}}}
+  };
+  // Estilo: total final mensal (azul claro)
+  const sFinal1 = {
+    font: {...fontBold, color:{rgb:C.azulMarinho}},
+    fill: {patternType:'solid', fgColor:{rgb:C.azulClaro}},
+    alignment: {horizontal:'right', vertical:'center'},
+    border: {top:{style:'medium',color:{rgb:C.bordaForte}},bottom:{style:'medium',color:{rgb:C.bordaForte}},left:{style:'medium',color:{rgb:C.bordaForte}},right:{style:'medium',color:{rgb:C.bordaForte}}}
+  };
+  const sFinal1Label = {
+    font: {...fontBold, color:{rgb:'444444'}},
+    fill: {patternType:'solid', fgColor:{rgb:C.branco}},
+    alignment: {horizontal:'left', vertical:'center'},
+    border: {top:{style:'medium',color:{rgb:C.bordaForte}},bottom:{style:'medium',color:{rgb:C.bordaForte}},left:{style:'medium',color:{rgb:C.bordaForte}},right:{style:'thin',color:{rgb:C.bordaSuave}}}
+  };
+  // Estilo: total grande (azul marinho com branco)
+  const sFinal2 = {
+    font: {...fontWhite},
+    fill: {patternType:'solid', fgColor:{rgb:C.azulMarinho}},
+    alignment: {horizontal:'center', vertical:'center'},
+    border: {top:{style:'medium',color:{rgb:C.bordaForte}},bottom:{style:'medium',color:{rgb:C.bordaForte}},left:{style:'medium',color:{rgb:C.bordaForte}},right:{style:'medium',color:{rgb:C.bordaForte}}}
+  };
+  const sFinal2Label = {
+    font: {...fontWhite},
+    fill: {patternType:'solid', fgColor:{rgb:C.azulMarinho}},
+    alignment: {horizontal:'left', vertical:'center'},
+    border: {top:{style:'medium',color:{rgb:C.bordaForte}},bottom:{style:'medium',color:{rgb:C.bordaForte}},left:{style:'medium',color:{rgb:C.bordaForte}},right:{style:'thin',color:{rgb:C.bordaSuave}}}
+  };
+  // Texto auxiliar (italic)
+  const sIta = {font: fontIta, alignment:{horizontal:'left', vertical:'center'}};
+  // Nota lateral
+  const sNota = {font: {...fontBase, color:{rgb:'666666'}, italic:true}, alignment:{horizontal:'left', vertical:'center'}};
+
+  /* ─── Helpers ─── */
+  const setCell = (ref, opts) => { ws[ref] = opts; };
+  const txt    = (r, v, s) => setCell(r, {t:'s', v, s});
+  const numr   = (r, v, s, fmt='"R$" #,##0.00') => setCell(r, {t:'n', v, z:fmt, s});
+  const pct    = (r, v, s) => setCell(r, {t:'n', v: v/100, z:'0.00%', s});
+  // SheetJS espera fórmula SEM o '=' inicial — removemos se vier
+  const fNum   = (r, f, s, fmt='"R$" #,##0.00') => setCell(r, {t:'n', f: String(f).replace(/^=/, ''), z:fmt, s});
+  const fPct   = (r, f, s) => setCell(r, {t:'n', f: String(f).replace(/^=/, ''), z:'0.00%', s});
+
+  /* ─── Layout das colunas ─── */
+  ws['!cols'] = [
+    {wch: 3},      // A — margem
+    {wch: 42},     // B — rubrica/label
+    {wch: 35.6},   // C — largura visível ≈ 36,43 no Excel (SheetJS soma padding)
+    {wch: 16},     // D — alíquota / label2
+    {wch: 19},     // E — valor input2 ou valor final
+    {wch: 3},      // F — margem
+  ];
+
+  ws['!merges'] = [];
+  ws['!rows'] = [];
+
+  /* ═══════════ TÍTULO ═══════════ */
+  txt('B2', 'CUSTOS PATRONAIS', sTitle);
+  for (const c of ['C2','D2','E2']) setCell(c, {t:'s', v:'', s:sTitle});
+  ws['!merges'].push({s:{r:1,c:1}, e:{r:1,c:4}});
+  ws['!rows'][1] = {hpt: 28};
+
+  /* ═══════════ 1. DADOS CADASTRAIS ═══════════ */
+  txt('B4', '1. DADOS CADASTRAIS', sSection);
+  for (const c of ['C4','D4','E4']) setCell(c, {t:'s', v:'', s:{border:borderBot}});
+  ws['!merges'].push({s:{r:3,c:1}, e:{r:3,c:4}});
+
+  txt('B6', 'Regime Tributário:', sLabel);
+  const regimeLabels = {
+    real_presumido: 'Lucro Real / Presumido',
+    simples_iv: 'Simples Nacional — Anexo IV',
+    simples_outros: 'Simples Nacional — Anexos I/II/III/V'
+  };
+  txt('C6', regimeLabels[els.regime.value] || els.regime.value, sInputText);
+
+  txt('B7', 'Salário Mínimo:', sLabel);
+  numr('C7', num(els.salMin), sInput);
+
+  txt('B8', 'Salário Base (Funcionário):', sLabel);
+  numr('C8', num(els.salBase), sInput);
+
+  txt('D6', 'Adicionais (%):', {font:fontBold, fill:{patternType:'solid', fgColor:{rgb:C.cinza}}, alignment:{horizontal:'center',vertical:'center'}, border:borderFull});
+  txt('E6', '', {fill:{patternType:'solid', fgColor:{rgb:C.cinza}}, border:borderFull});
+  ws['!merges'].push({s:{r:5,c:3}, e:{r:5,c:4}});
+
+  const insalPct = els.chkInsal.checked ? num(els.insal) : 0;
+  const pericPct = els.chkPeric.checked ? 30 : 0;
+
+  txt('D7', 'Insalubridade:', sLabel);
+  pct('E7', insalPct, sInput);
+  txt('D8', 'Periculosidade:', sLabel);
+  pct('E8', pericPct, sInput);
+
+  // REMUNERAÇÃO BRUTA
+  txt('B10', 'REMUNERAÇÃO BRUTA TOTAL:', sDestaqueLabel);
+  fNum('C10', '=C8+(C7*E7)+(C8*E8)', sDestaque);
+
+  /* ═══════════ 2. ALÍQUOTAS PATRONAIS ═══════════ */
+  txt('B12', '2. ALÍQUOTAS PATRONAIS', sSection);
+  for (const c of ['C12','D12','E12']) setCell(c, {t:'s', v:'', s:{border:borderBot}});
+  ws['!merges'].push({s:{r:11,c:1}, e:{r:11,c:4}});
+
+  // Cabeçalho
+  txt('B15', 'Encargo', sColHeader);
+  txt('C15', 'Alíquota (%)', sColHeader);
+  txt('D15', '', sColHeader);
+  txt('E15', '', sColHeader);
+  ws['!merges'].push({s:{r:14,c:3}, e:{r:14,c:4}});
+
+  // Linhas das alíquotas
+  txt('B16', 'INSS Patronal (CPP)', sLabel);
+  pct('C16', num(els.aliqInss), sInputCenter);
+  setCell('D16', {t:'s', v:'', s:sNota});
+  setCell('E16', {t:'s', v:'', s:sNota});
+  ws['!merges'].push({s:{r:15,c:3}, e:{r:15,c:4}});
+
+  txt('B17', 'Terceiros (Sistema S)', sLabel);
+  pct('C17', num(els.aliqTerc), sInputCenter);
+  setCell('D17', {t:'s', v:'', s:sNota});
+  setCell('E17', {t:'s', v:'', s:sNota});
+  ws['!merges'].push({s:{r:16,c:3}, e:{r:16,c:4}});
+
+  // GILRAT — usa o efetivo (já calculado)
+  let gilratEfetivo = num(els.gilratDireto);
+  txt('B18', 'GILRAT (RAT × FAP)', sLabel);
+  pct('C18', gilratEfetivo, sInputCenter);
+  setCell('D18', {t:'s', v:'', s:sNota});
+  setCell('E18', {t:'s', v:'', s:sNota});
+  ws['!merges'].push({s:{r:17,c:3}, e:{r:17,c:4}});
+
+  txt('B19', 'FGTS Mensal', sLabel);
+  pct('C19', num(els.aliqFgts), sInputCenter);
+  setCell('D19', {t:'s', v:'', s:sNota});
+  setCell('E19', {t:'s', v:'', s:sNota});
+  ws['!merges'].push({s:{r:18,c:3}, e:{r:18,c:4}});
+
+  txt('B20', 'Multa Rescisória FGTS', sLabel);
+  pct('C20', num(els.aliqMulta), sInputCenter);
+  setCell('D20', {t:'s', v:'', s:sNota});
+  setCell('E20', {t:'s', v:'', s:sNota});
+  ws['!merges'].push({s:{r:19,c:3}, e:{r:19,c:4}});
+
+  /* ═══════════ 3. DEMONSTRATIVO ═══════════ */
+  txt('B22', '3. DEMONSTRATIVO DE CUSTOS MENSAIS', sSection);
+  for (const c of ['C22','D22','E22']) setCell(c, {t:'s', v:'', s:{border:borderBot}});
+  ws['!merges'].push({s:{r:21,c:1}, e:{r:21,c:4}});
+
+  // Cabeçalho da tabela
+  txt('B24', '', sColHeader);
+  txt('C24', 'Base de Cálculo', sColHeader);
+  txt('D24', 'Alíquota', sColHeader);
+  txt('E24', 'Valor (R$)', sColHeader);
+
+  // 1 - ENCARGOS SOCIAIS DIRETOS
+  txt('B25', '1 - ENCARGOS SOCIAIS DIRETOS', sGroup);
+  for (const c of ['C25','D25','E25']) setCell(c, {t:'s', v:'', s:sGroup});
+  ws['!merges'].push({s:{r:24,c:1}, e:{r:24,c:4}});
+
+  txt('B26', 'INSS Patronal', sRubLabel);
+  fNum('C26', '=C10', sRubBase);
+  fPct('D26', '=C16', sRubAliq);
+  fNum('E26', '=C26*D26', sRubBase);
+
+  txt('B27', 'Terceiros / Outras Entidades', sRubLabel);
+  fNum('C27', '=C10', sRubBase);
+  fPct('D27', '=C17', sRubAliq);
+  fNum('E27', '=C27*D27', sRubBase);
+
+  txt('B28', 'RAT x FAP (Risco Acidente)', sRubLabel);
+  fNum('C28', '=C10', sRubBase);
+  fPct('D28', '=C18', sRubAliq);
+  fNum('E28', '=C28*D28', sRubBase);
+
+  txt('B29', 'FGTS (Depósito Mensal)', sRubLabel);
+  fNum('C29', '=C10', sRubBase);
+  fPct('D29', '=C19', sRubAliq);
+  fNum('E29', '=C29*D29', sRubBase);
+
+  txt('B30', 'TOTAL DE ENCARGOS SOCIAIS DIRETOS', sSubtotalLabel);
+  setCell('C30', {t:'s', v:'', s:sSubtotalLabel});
+  setCell('D30', {t:'s', v:'', s:sSubtotalLabel});
+  fNum('E30', '=SUM(E26:E29)', sSubtotal);
+  ws['!merges'].push({s:{r:29,c:1}, e:{r:29,c:3}});
+
+  // 2 - PROVISÕES
+  txt('B32', '2 - PROVISÕES (FÉRIAS + 13º)', sGroup);
+  for (const c of ['C32','D32','E32']) setCell(c, {t:'s', v:'', s:sGroup});
+  ws['!merges'].push({s:{r:31,c:1}, e:{r:31,c:4}});
+
+  txt('B33', 'Provisão 13º Salário', sRubLabel);
+  fNum('C33', '=C10', sRubBase);
+  fPct('D33', '=1/12', sRubAliq);
+  fNum('E33', '=C33*D33', sRubBase);
+
+  txt('B34', 'Provisão Férias + 1/3', sRubLabel);
+  fNum('C34', '=C10', sRubBase);
+  fPct('D34', '=(1/12)+((1/12)/3)', sRubAliq);
+  fNum('E34', '=C34*D34', sRubBase);
+
+  txt('B35', 'FGTS s/ Provisões', sRubLabel);
+  fNum('C35', '=E33+E34', sRubBase);
+  fPct('D35', '=C19', sRubAliq);
+  fNum('E35', '=C35*D35', sRubBase);
+
+  txt('B36', 'Encargos (INSS+RAT+Terc) s/ Prov.', sRubLabel);
+  fNum('C36', '=E33+E34', sRubBase);
+  fPct('D36', '=C16+C17+C18', sRubAliq);
+  fNum('E36', '=C36*D36', sRubBase);
+
+  txt('B37', 'TOTAL DE PROVISÕES (FÉRIAS + 13º)', sSubtotalLabel);
+  setCell('C37', {t:'s', v:'', s:sSubtotalLabel});
+  setCell('D37', {t:'s', v:'', s:sSubtotalLabel});
+  fNum('E37', '=SUM(E33:E36)', sSubtotal);
+  ws['!merges'].push({s:{r:36,c:1}, e:{r:36,c:3}});
+
+  // 3 - CUSTOS VARIÁVEIS
+  txt('B39', '3 - CUSTOS VARIÁVEIS / MULTA RESCISÓRIA', sGroup);
+  for (const c of ['C39','D39','E39']) setCell(c, {t:'s', v:'', s:sGroup});
+  ws['!merges'].push({s:{r:38,c:1}, e:{r:38,c:4}});
+
+  txt('B40', 'Abono Pecuniário + 1/3 (Estimado)', sRubLabel);
+  fNum('C40', '=C10', sRubBase);
+  fPct('D40', '=4/108', sRubAliq);
+  fNum('E40', '=C40*D40', sRubBase);
+
+  txt('B41', 'Multa Rescisória FGTS (Provisão)', sRubLabel);
+  fNum('C41', '=E29+E35', sRubBase);
+  fPct('D41', '=C20', sRubAliq);
+  fNum('E41', '=C41*D41', sRubBase);
+
+  txt('B42', 'TOTAL DE CUSTOS VARIÁVEIS / MULTA RESCISÓRIA', sSubtotalLabel);
+  setCell('C42', {t:'s', v:'', s:sSubtotalLabel});
+  setCell('D42', {t:'s', v:'', s:sSubtotalLabel});
+  fNum('E42', '=SUM(E40:E41)', sSubtotal);
+  ws['!merges'].push({s:{r:41,c:1}, e:{r:41,c:3}});
+
+  // 4 - BENEFÍCIOS (apenas se houver algum)
+  const temBeneficios = num(els.vtTotal) > 0 || num(els.vrTotal) > 0 || num(els.planoSaude) > 0 || num(els.outros) > 0;
+
+  let linhaCustoMensal = 44; // posição do total mensal
+  if (temBeneficios) {
+    txt('B44', '4 - BENEFÍCIOS E OUTROS (CUSTO LÍQUIDO)', sGroup);
+    for (const c of ['C44','D44','E44']) setCell(c, {t:'s', v:'', s:sGroup});
+    ws['!merges'].push({s:{r:43,c:1}, e:{r:43,c:4}});
+
+    let r = 45;
+    const benefRefs = [];
+
+    if (num(els.vtTotal) > 0) {
+      txt(`B${r}`, 'Vale-Transporte (Total)', sRubLabel);
+      numr(`C${r}`, num(els.vtTotal), sRubBase);
+      setCell(`D${r}`, {t:'s', v:'', s:sRubAliq});
+      fNum(`E${r}`, `=C${r}`, sRubBase);
+      benefRefs.push(`E${r}`);
+      r++;
+      txt(`B${r}`, '   (−) Desconto do Empregado (% sobre salário)', {font:{...fontIta, color:{rgb:'666666'}}, alignment:{horizontal:'left',vertical:'center'}, border:{right:{style:'thin',color:{rgb:C.bordaSuave}}}});
+      setCell(`C${r}`, {t:'s', v:'', s:sRubBase});
+      pct(`D${r}`, num(els.vtDesc), sRubAliq);
+      fNum(`E${r}`, `=-MIN(C${r-1},C8*D${r})`, sRubBase);
+      benefRefs.push(`E${r}`);
+      r++;
+    }
+
+    if (num(els.vrTotal) > 0) {
+      txt(`B${r}`, 'Vale-Refeição / Alimentação (Total)', sRubLabel);
+      numr(`C${r}`, num(els.vrTotal), sRubBase);
+      setCell(`D${r}`, {t:'s', v:'', s:sRubAliq});
+      fNum(`E${r}`, `=C${r}`, sRubBase);
+      benefRefs.push(`E${r}`);
+      r++;
+      txt(`B${r}`, '   (−) Desconto do Empregado', {font:{...fontIta, color:{rgb:'666666'}}, alignment:{horizontal:'left',vertical:'center'}, border:{right:{style:'thin',color:{rgb:C.bordaSuave}}}});
+      setCell(`C${r}`, {t:'s', v:'', s:sRubBase});
+      pct(`D${r}`, num(els.vrDesc), sRubAliq);
+      fNum(`E${r}`, `=-C${r-1}*D${r}`, sRubBase);
+      benefRefs.push(`E${r}`);
+      r++;
+    }
+
+    if (num(els.planoSaude) > 0) {
+      txt(`B${r}`, 'Plano de Saúde', sRubLabel);
+      numr(`C${r}`, num(els.planoSaude), sRubBase);
+      setCell(`D${r}`, {t:'s', v:'', s:sRubAliq});
+      fNum(`E${r}`, `=C${r}`, sRubBase);
+      benefRefs.push(`E${r}`);
+      r++;
+    }
+
+    if (num(els.outros) > 0) {
+      txt(`B${r}`, 'Outros Benefícios', sRubLabel);
+      numr(`C${r}`, num(els.outros), sRubBase);
+      setCell(`D${r}`, {t:'s', v:'', s:sRubAliq});
+      fNum(`E${r}`, `=C${r}`, sRubBase);
+      benefRefs.push(`E${r}`);
+      r++;
+    }
+
+    txt(`B${r}`, 'TOTAL BENEFÍCIOS (LÍQUIDO PARA EMPRESA)', sSubtotalLabel);
+    setCell(`C${r}`, {t:'s', v:'', s:sSubtotalLabel});
+    setCell(`D${r}`, {t:'s', v:'', s:sSubtotalLabel});
+    fNum(`E${r}`, `=${benefRefs.join('+')}`, sSubtotal);
+    ws['!merges'].push({s:{r:r-1,c:1}, e:{r:r-1,c:3}});
+
+    linhaCustoMensal = r + 2;
+  }
+
+  // ═══ TOTAIS FINAIS ═══
+  const rTotalMensal = linhaCustoMensal;
+  const rTotalCompleto = linhaCustoMensal + 1;
+
+  txt(`B${rTotalMensal}`, 'CUSTO MENSAL (SALÁRIO + ENCARGOS)', sFinal1Label);
+  setCell(`C${rTotalMensal}`, {t:'s', v:'', s:sFinal1Label});
+  setCell(`D${rTotalMensal}`, {t:'s', v:'', s:sFinal1Label});
+  fNum(`E${rTotalMensal}`, `=C10+E30`, sFinal1);
+  ws['!merges'].push({s:{r:rTotalMensal-1,c:1}, e:{r:rTotalMensal-1,c:3}});
+  ws['!rows'][rTotalMensal-1] = {hpt: 26};
+
+  txt(`B${rTotalCompleto}`, 'CUSTO MENSAL + PROVISÕES:', sFinal2Label);
+  setCell(`C${rTotalCompleto}`, {t:'s', v:'', s:sFinal2Label});
+  setCell(`D${rTotalCompleto}`, {t:'s', v:'', s:sFinal2Label});
+  const formulaTotal = temBeneficios
+    ? `=E${rTotalMensal}+E37+E42+E${rTotalMensal-2}`
+    : `=E${rTotalMensal}+E37+E42`;
+  fNum(`E${rTotalCompleto}`, formulaTotal, sFinal2);
+  ws['!merges'].push({s:{r:rTotalCompleto-1,c:1}, e:{r:rTotalCompleto-1,c:3}});
+  ws['!rows'][rTotalCompleto-1] = {hpt: 26};
+
+  // Range
+  ws['!ref'] = `A1:F${rTotalCompleto + 2}`;
+
+  XLSX.utils.book_append_sheet(wb, ws, 'Custo Empregado');
+
+  const data = new Date();
+  const dataStr = data.toLocaleDateString('pt-BR').replace(/\//g,'-');
+  const nomeArquivo = `Custo_Empregado_${dataStr}.xlsx`;
+
+  // Gera o buffer e remove as linhas de grade (gridlines) via patch no XML
+  try {
+    const buf = XLSX.write(wb, {bookType:'xlsx', type:'array'});
+    const u8 = new Uint8Array(buf);
+    const files = fflate.unzipSync(u8);
+    const dec = new TextDecoder();
+    const enc = new TextEncoder();
+    for (const fname of Object.keys(files)) {
+      if (/xl\/worksheets\/sheet\d+\.xml$/.test(fname)) {
+        let xml = dec.decode(files[fname]);
+        xml = xml.replace(/<sheetView ([^>]*?)\/>/g, (m, attrs) =>
+          m.includes('showGridLines') ? m : `<sheetView showGridLines="0" ${attrs}/>`);
+        xml = xml.replace(/<sheetView ([^>]*?)>/g, (m, attrs) =>
+          (m.includes('showGridLines') || m.endsWith('/>')) ? m : `<sheetView showGridLines="0" ${attrs}>`);
+        files[fname] = enc.encode(xml);
+      }
+    }
+    const out = fflate.zipSync(files);
+    const blob = new Blob([out], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = nomeArquivo;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch (e) {
+    // Fallback: download direto sem o patch de gridlines
+    console.error('Patch de gridlines falhou, baixando versão padrão:', e);
+    XLSX.writeFile(wb, nomeArquivo);
+  }
+}
+
+/* ─── Listeners ─── */
+document.addEventListener('DOMContentLoaded', () => {
+  // Inputs que recalculam ao mudar
+  const allInputs = document.querySelectorAll('input, select');
+  allInputs.forEach(el => {
+    el.addEventListener('input', calcular);
+    el.addEventListener('change', calcular);
+  });
+
+  // Regime: aplicar defaults
+  els.regime.addEventListener('change', () => {
+    aplicarRegime();
+    calcular();
+  });
+
+  // Toggles dos checkboxes
+  els.chkInsal.addEventListener('change', () => { toggleInsal(); calcular(); });
+  els.chkPeric.addEventListener('change', calcular);
+
+  // Ações
+  document.getElementById('btnExport').addEventListener('click', exportarExcel);
+  document.getElementById('btnLimpar').addEventListener('click', limpar);
+
+  // Init
+  toggleInsal();
+  calcular();
+});
+</script>
+</body>
+</html>

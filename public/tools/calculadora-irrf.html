@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora IRRF 2026</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #1a1a1a;
+            --bg-color: #f7f9fa;
+            --border-color: #e0e0e0;
+            --text-color: #333;
+            --green-color: #28a745;
+            --red-color: #dc3545;
+            --blue-color: #007bff;
+        }
+
+        * {
+            box-sizing: border-box;
+            /* Fonte alterada para Poppins */
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 40px 20px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 32px;
+            margin-bottom: 5px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        h2 {
+            font-size: 18px;
+            margin-bottom: 5px;
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        p.desc {
+            color: #777;
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-group label {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .input-group input[type="text"], .input-group input[type="number"] {
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 15px;
+            outline: none;
+            transition: border 0.3s;
+        }
+
+        .input-group input:focus {
+            border-color: #999;
+        }
+
+        .hint {
+            font-size: 12px;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .checkbox-group input {
+            width: 18px;
+            height: 18px;
+        }
+
+        .checkbox-group label {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .btn-calc {
+            width: 100%;
+            background: var(--primary-color);
+            color: #fff;
+            border: none;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn-calc:hover {
+            background: #333;
+        }
+
+        .footer-note {
+            text-align: center;
+            font-size: 12px;
+            color: #888;
+            margin-top: 15px;
+        }
+
+        /* Results Section */
+        #results-container {
+            display: none;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .result-card {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            background: #fff;
+            position: relative;
+        }
+
+        .result-card.best-option {
+            border: 2px solid var(--green-color);
+            box-shadow: 0 0 15px rgba(40, 167, 69, 0.1);
+        }
+
+        .badge-best {
+            display: none;
+            position: absolute;
+            top: -12px;
+            right: 15px;
+            background: var(--green-color);
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .result-card.best-option .badge-best {
+            display: block;
+        }
+
+        .result-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .result-line {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .result-line.red { color: var(--red-color); }
+        .result-line.green { color: var(--green-color); }
+        .result-line.bold { font-weight: 600; }
+        
+        hr.divider {
+            border: 0;
+            border-top: 1px solid #eee;
+            margin: 15px 0;
+        }
+
+        .final-irrf {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 18px;
+            font-weight: 700;
+            margin: 20px 0;
+        }
+
+        .memory-box {
+            background: #fdfdfd;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            padding: 15px;
+            font-size: 12px;
+        }
+
+        .memory-title {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .step-title {
+            display: flex;
+            align-items: center;
+            font-weight: 600;
+            color: var(--blue-color);
+            margin-bottom: 10px;
+            margin-top: 15px;
+        }
+
+        .step-title span {
+            background: var(--blue-color);
+            color: white;
+            width: 18px;
+            height: 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 3px;
+            font-size: 11px;
+            margin-right: 8px;
+        }
+
+        .memory-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+            font-size: 11px;
+        }
+
+        .memory-table th, .memory-table td {
+            border-bottom: 1px solid #eee;
+            padding: 6px 4px;
+            text-align: right;
+        }
+        
+        .memory-table th:first-child, .memory-table td:first-child {
+            text-align: left;
+        }
+
+        .memory-table th {
+            background: #f4f4f4;
+            color: #555;
+            font-weight: 600;
+        }
+
+        .memory-table tr.active {
+            background-color: #f0f8ff;
+            font-weight: 600;
+        }
+
+        .info-text {
+            color: #777;
+            font-style: italic;
+            margin-bottom: 5px;
+        }
+
+        .formula-box {
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+
+        .final-box {
+            background: #f1f1f1;
+            padding: 12px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            font-weight: 600;
+            font-size: 15px;
+            margin-top: 15px;
+        }
+
+        @media(max-width: 768px) {
+            .form-grid, #results-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body><nav id="dp-panel-nav" style="position:fixed;top:0;left:0;right:0;z-index:99999;height:44px;background:#1f2937;display:flex;align-items:center;padding:0 20px;box-shadow:0 1px 4px rgba(0,0,0,.2);font-family:'Poppins',-apple-system,sans-serif;"><a href="/" style="color:#fff;text-decoration:none;font-weight:600;font-size:13px;display:inline-flex;align-items:center;gap:8px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>Painel DP</a><span style="margin-left:auto;color:rgba(255,255,255,.45);font-size:11px;font-weight:500;letter-spacing:.04em;">AUTOMAÇÕES DP</span></nav><div style="height:44px;"></div>
+
+    <h1>IRRF 2026</h1>
+    <div class="subtitle">Lei nº 15.270/2025 • Tabela Progressiva Atualizada</div>
+
+    <div class="container">
+        <h2>Dados para Cálculo</h2>
+        <p class="desc">Preencha as informações para o cálculo</p>
+
+        <div class="form-grid">
+            <div class="input-group">
+                <label>Salário Bruto (R$)</label>
+                <input type="number" id="salario" placeholder="0,00" step="0.01">
+            </div>
+            <div class="input-group">
+                <label>Pensão Alimentícia (R$)</label>
+                <input type="number" id="pensao" placeholder="0,00" step="0.01">
+            </div>
+            <div class="input-group">
+                <label>Outras Deduções Legais (R$)</label>
+                <input type="number" id="outras" placeholder="0,00" step="0.01">
+            </div>
+            <div class="input-group">
+                <label>Quantidade de Dependentes</label>
+                <input type="number" id="dependentes" placeholder="0" min="0" step="1">
+                <div class="hint">R$ 189,59 cada</div>
+            </div>
+        </div>
+
+        <div class="checkbox-group">
+            <input type="checkbox" id="prolabore">
+            <div>
+                <label for="prolabore">Pró-labore (INSS 11%)</label>
+                <div class="hint">INSS será calculado pela alíquota fixa de 11% até o teto (se marcado).</div>
+            </div>
+        </div>
+
+        <button class="btn-calc" onclick="calcular()">Calcular</button>
+        <div class="footer-note">Tabela IRRF utilizada: Isento até 2.428,80 | Teto 27,5% acima de 4.664,68 (Ded. 908,73)</div>
+    </div>
+
+    <div id="results-container" class="container" style="background: transparent; border: none; box-shadow: none; padding: 0;">
+        
+        <div class="result-card" id="card-legal">
+            <div class="badge-best">Mais Vantajosa</div>
+            <div class="result-title">Opção: Deduções Legais</div>
+            
+            <div class="result-line"><span>(+) Rendimentos</span> <span id="res-leg-rendimentos">R$ 0,00</span></div>
+            <div class="result-line red"><span>(-) INSS</span> <span id="res-leg-inss">-R$ 0,00</span></div>
+            <div class="result-line red"><span>(-) Dependentes</span> <span id="res-leg-dep">-R$ 0,00</span></div>
+            <div class="result-line red"><span>(-) Pensão/Outras</span> <span id="res-leg-outras">-R$ 0,00</span></div>
+            <hr class="divider">
+            <div class="result-line bold"><span>= Base de Cálculo</span> <span id="res-leg-base">R$ 0,00</span></div>
+            <div class="result-line"><span>Imposto (Tabela)</span> <span id="res-leg-imposto">R$ 0,00</span></div>
+            <div class="result-line green"><span>(-) Redução Lei 15.270</span> <span id="res-leg-reducao">-R$ 0,00</span></div>
+            
+            <div class="final-irrf">
+                <span>IRRF Retido:</span>
+                <span id="res-leg-final">R$ 0,00</span>
+            </div>
+
+            <div class="memory-box" id="memory-legal"></div>
+        </div>
+
+        <div class="result-card" id="card-simp">
+            <div class="badge-best">Mais Vantajosa</div>
+            <div class="result-title">Opção: Desconto Simplificado</div>
+            
+            <div class="result-line"><span>(+) Rendimentos</span> <span id="res-simp-rendimentos">R$ 0,00</span></div>
+            <div class="result-line red"><span>(-) Desc. Simplificado</span> <span id="res-simp-desc">-R$ 0,00</span></div>
+            <hr class="divider">
+            <div class="result-line bold"><span>= Base de Cálculo</span> <span id="res-simp-base">R$ 0,00</span></div>
+            <div class="result-line"><span>Imposto (Tabela)</span> <span id="res-simp-imposto">R$ 0,00</span></div>
+            <div class="result-line green"><span>(-) Redução Lei 15.270</span> <span id="res-simp-reducao">-R$ 0,00</span></div>
+            
+            <div class="final-irrf">
+                <span>IRRF Retido:</span>
+                <span id="res-simp-final">R$ 0,00</span>
+            </div>
+
+            <div class="memory-box" id="memory-simp"></div>
+        </div>
+
+    </div>
+
+    <script>
+        // Constantes do Ano de 2026
+        const VALOR_DEPENDENTE = 189.59;
+        const LIMITE_SIMPLIFICADO = 607.20; // 20% limitado a este valor
+
+        const TABELA_INSS = [
+            { ate: 1621.00, aliquota: 0.075, deducao: 0.00 },
+            { ate: 2902.84, aliquota: 0.090, deducao: 24.32 },
+            { ate: 4354.27, aliquota: 0.120, deducao: 111.42 },
+            { ate: 8475.55, aliquota: 0.140, deducao: 198.50 } // Teto Máximo INSS
+        ];
+
+        const TABELA_IRRF = [
+            { ate: 2428.80, aliquota: 0.000, deducao: 0.00 },
+            { ate: 2826.65, aliquota: 0.075, deducao: 182.16 },
+            { ate: 3751.05, aliquota: 0.150, deducao: 394.16 },
+            { ate: 4664.68, aliquota: 0.225, deducao: 675.49 },
+            { ate: Infinity, aliquota: 0.275, deducao: 908.73 }
+        ];
+
+        // Helpers Matemáticos
+        function round2(num) {
+            return Math.round(num * 100 + Number.EPSILON) / 100;
+        }
+
+        function formatCurrency(val) {
+            return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        function formatPct(val) {
+            return (val * 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%';
+        }
+
+        // Lógica de Negócios
+        function calcINSS(salario, isProlabore) {
+            let tetoINSS = TABELA_INSS[TABELA_INSS.length - 1].ate;
+            
+            if (isProlabore) {
+                let baseCalculo = Math.min(salario, tetoINSS);
+                let valor = round2(baseCalculo * 0.11);
+                return { aliquota: 0.11, deducao: 0, valor: valor, isTeto: salario > tetoINSS };
+            }
+
+            for (let faixa of TABELA_INSS) {
+                if (salario <= faixa.ate) {
+                    let valor = round2((salario * faixa.aliquota) - faixa.deducao);
+                    return { ...faixa, valor: Math.max(0, valor), isTeto: false };
+                }
+            }
+            // Passou do teto
+            let tetoAliquota = TABELA_INSS[TABELA_INSS.length - 1].aliquota;
+            let tetoDeducao = TABELA_INSS[TABELA_INSS.length - 1].deducao;
+            let valorMaximo = round2((tetoINSS * tetoAliquota) - tetoDeducao);
+            return { aliquota: tetoAliquota, deducao: tetoDeducao, valor: valorMaximo, isTeto: true };
+        }
+
+        function calcIRRFTabela(base) {
+            for (let i=0; i < TABELA_IRRF.length; i++) {
+                if (base <= TABELA_IRRF[i].ate) {
+                    let valor = round2((base * TABELA_IRRF[i].aliquota) - TABELA_IRRF[i].deducao);
+                    return { ...TABELA_IRRF[i], valor: Math.max(0, valor), faixaIndex: i };
+                }
+            }
+            return { aliquota: 0, deducao: 0, valor: 0, faixaIndex: 0 };
+        }
+
+        function calcReducao15270(rendimentoBruto, irrfCalculado) {
+            if (rendimentoBruto <= 5000.00) {
+                // Isenção completa. A redução é igual ao imposto devido.
+                return { 
+                    valor: irrfCalculado, 
+                    formula: `Rendimentos até R$ 5.000,00 são isentos.` 
+                };
+            } else if (rendimentoBruto <= 7350.00) {
+                let reducaoCalc = round2(978.62 - (0.133145 * rendimentoBruto));
+                reducaoCalc = Math.max(0, reducaoCalc);
+                // A redução não pode ser maior que o próprio imposto
+                let reducaoAplicada = Math.min(reducaoCalc, irrfCalculado);
+                return { 
+                    valor: reducaoAplicada, 
+                    formula: `R$ 978,62 - (0,133145 × ${formatCurrency(rendimentoBruto)}) = ${formatCurrency(reducaoCalc)}` 
+                };
+            } else {
+                return { 
+                    valor: 0, 
+                    formula: `Sem redução (Rendimentos > R$ 7.350,00)` 
+                };
+            }
+        }
+
+        // Geração da Memória de Cálculo (HTML)
+        function gerarMemoriaCalculo(tipo, gross, descontosIniciaisLabel, descontosIniciaisValor, base, calcIRRF, reducao, finalIRRF) {
+            
+            let tabelaIRRFHtml = TABELA_IRRF.map((faixa, index) => {
+                let active = index === calcIRRF.faixaIndex ? 'class="active"' : '';
+                let limite = faixa.ate === Infinity ? 'Acima de R$ 4.664,68' : 
+                             (index === 0 ? `Até ${formatCurrency(faixa.ate)}` : `De ${formatCurrency(TABELA_IRRF[index-1].ate + 0.01)} até ${formatCurrency(faixa.ate)}`);
+                
+                return `
+                <tr ${active}>
+                    <td>${limite}</td>
+                    <td>${formatPct(faixa.aliquota)}</td>
+                    <td>${formatCurrency(faixa.deducao)}</td>
+                </tr>`;
+            }).join('');
+
+            return `
+                <div class="memory-title">Memória de Cálculo</div>
+                
+                <div class="step-title"><span>1</span> Base Tributável:</div>
+                <div class="result-line"><span>Rendimento Bruto:</span> <span>${formatCurrency(gross)}</span></div>
+                <div class="result-line red"><span>(-) ${descontosIniciaisLabel}:</span> <span>-${formatCurrency(descontosIniciaisValor)}</span></div>
+                <div class="result-line bold" style="margin-top: 5px"><span>Base de Cálculo:</span> <span>${formatCurrency(base)}</span></div>
+
+                <div class="step-title"><span>2</span> Enquadramento na Tabela IRRF:</div>
+                <table class="memory-table">
+                    <tr><th>Faixa</th><th>Alíquota</th><th>Dedução</th></tr>
+                    ${tabelaIRRFHtml}
+                </table>
+                <div class="info-text">✓ Sua base se enquadra na faixa de ${formatPct(calcIRRF.aliquota)}</div>
+
+                <div class="step-title"><span>3</span> Cálculo do Imposto:</div>
+                <div class="formula-box">
+                    <div class="result-line"><span>Fórmula:</span> <span>${formatCurrency(base)} × ${formatPct(calcIRRF.aliquota)} - ${formatCurrency(calcIRRF.deducao)}</span></div>
+                    <div class="result-line bold red"><span>= IRRF Calculado:</span> <span>${formatCurrency(calcIRRF.valor)}</span></div>
+                </div>
+
+                <div class="step-title"><span>4</span> Redução Lei 15.270/2025:</div>
+                <div class="formula-box">
+                    <div class="info-text">✓ ${reducao.formula}</div>
+                    <div class="result-line bold green" style="margin-top: 5px;"><span>Redução aplicada:</span> <span>-${formatCurrency(reducao.valor)}</span></div>
+                </div>
+
+                <div class="final-box">
+                    <span>IRRF Retido:</span>
+                    <span>${formatCurrency(finalIRRF)}</span>
+                </div>
+            `;
+        }
+
+        // Lógica da Interface
+        function calcular() {
+            let salario = parseFloat(document.getElementById('salario').value) || 0;
+            let pensao = parseFloat(document.getElementById('pensao').value) || 0;
+            let outras = parseFloat(document.getElementById('outras').value) || 0;
+            let dependentes = parseInt(document.getElementById('dependentes').value) || 0;
+            let isProlabore = document.getElementById('prolabore').checked;
+
+            if (salario <= 0) return;
+
+            // 1. DEDUÇÕES LEGAIS
+            let calcInss = calcINSS(salario, isProlabore);
+            let inssValor = calcInss.valor;
+            let dependentesValor = dependentes * VALOR_DEPENDENTE;
+            let pensaoOutrasValor = pensao + outras;
+            
+            let baseLegal = Math.max(0, salario - inssValor - dependentesValor - pensaoOutrasValor);
+            let irrfLegalTabela = calcIRRFTabela(baseLegal);
+            let reducaoLegal = calcReducao15270(salario, irrfLegalTabela.valor);
+            let irrfLegalFinal = Math.max(0, round2(irrfLegalTabela.valor - reducaoLegal.valor));
+
+            // Atualiza UI Deduções Legais
+            document.getElementById('res-leg-rendimentos').innerText = formatCurrency(salario);
+            document.getElementById('res-leg-inss').innerText = '-' + formatCurrency(inssValor);
+            document.getElementById('res-leg-dep').innerText = '-' + formatCurrency(dependentesValor);
+            document.getElementById('res-leg-outras').innerText = '-' + formatCurrency(pensaoOutrasValor);
+            document.getElementById('res-leg-base').innerText = formatCurrency(baseLegal);
+            document.getElementById('res-leg-imposto').innerText = formatCurrency(irrfLegalTabela.valor);
+            document.getElementById('res-leg-reducao').innerText = '-' + formatCurrency(reducaoLegal.valor);
+            document.getElementById('res-leg-final').innerText = formatCurrency(irrfLegalFinal);
+
+            document.getElementById('memory-legal').innerHTML = gerarMemoriaCalculo(
+                "Deduções Legais", salario, "Deduções Legais (INSS/Dep/Outros)", 
+                (inssValor + dependentesValor + pensaoOutrasValor), baseLegal, irrfLegalTabela, reducaoLegal, irrfLegalFinal
+            );
+
+            // 2. DESCONTO SIMPLIFICADO
+            let descontoSimpValor = round2(Math.min(salario * 0.20, LIMITE_SIMPLIFICADO));
+            let baseSimp = Math.max(0, salario - descontoSimpValor);
+            let irrfSimpTabela = calcIRRFTabela(baseSimp);
+            let reducaoSimp = calcReducao15270(salario, irrfSimpTabela.valor);
+            let irrfSimpFinal = Math.max(0, round2(irrfSimpTabela.valor - reducaoSimp.valor));
+
+            // Atualiza UI Desconto Simplificado
+            document.getElementById('res-simp-rendimentos').innerText = formatCurrency(salario);
+            document.getElementById('res-simp-desc').innerText = '-' + formatCurrency(descontoSimpValor);
+            document.getElementById('res-simp-base').innerText = formatCurrency(baseSimp);
+            document.getElementById('res-simp-imposto').innerText = formatCurrency(irrfSimpTabela.valor);
+            document.getElementById('res-simp-reducao').innerText = '-' + formatCurrency(reducaoSimp.valor);
+            document.getElementById('res-simp-final').innerText = formatCurrency(irrfSimpFinal);
+
+            document.getElementById('memory-simp').innerHTML = gerarMemoriaCalculo(
+                "Desconto Simplificado", salario, `Desc. Simplificado (${formatCurrency(LIMITE_SIMPLIFICADO)})`, 
+                descontoSimpValor, baseSimp, irrfSimpTabela, reducaoSimp, irrfSimpFinal
+            );
+
+            // Verifica qual a opção mais vantajosa
+            let cardLegal = document.getElementById('card-legal');
+            let cardSimp = document.getElementById('card-simp');
+            
+            cardLegal.classList.remove('best-option');
+            cardSimp.classList.remove('best-option');
+
+            if (irrfSimpFinal < irrfLegalFinal) {
+                cardSimp.classList.add('best-option');
+            } else {
+                cardLegal.classList.add('best-option');
+            }
+
+            // Mostra os resultados
+            document.getElementById('results-container').style.display = 'grid';
+            document.getElementById('results-container').scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>

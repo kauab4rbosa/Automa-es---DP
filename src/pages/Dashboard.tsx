@@ -76,7 +76,7 @@ const tools: Tool[] = [
   {
     title: 'Custo Empregado Doméstico',
     desc: 'Calcula encargos do Simples Doméstico: INSS, FGTS, GILRAT, provisões e salário líquido.',
-    route: '/custo-empregado-domestico',
+    route: '/tools/custo-domestico.html',
     iconBg: '#ecfdf5',
     iconColor: '#16a34a',
     icon: <HouseIcon color="#16a34a" />,
@@ -84,7 +84,7 @@ const tools: Tool[] = [
   {
     title: 'Calculadora de Horas',
     desc: 'Operações matemáticas com horas no formato HH:MM:SS (soma, subtração, multiplicação e divisão).',
-    route: '/calculadora-horas',
+    route: '/tools/calculadora-horas.html',
     iconBg: '#eff6ff',
     iconColor: '#2563eb',
     icon: <ClockIcon color="#2563eb" />,
@@ -92,7 +92,7 @@ const tools: Tool[] = [
   {
     title: 'Calculadora IRRF 2026',
     desc: 'IRRF com Lei nº 15.270/2025. Compara deduções legais × desconto simplificado automaticamente.',
-    route: '/calculadora-irrf',
+    route: '/tools/calculadora-irrf.html',
     iconBg: '#fef9c3',
     iconColor: '#ca8a04',
     icon: <DocIcon color="#ca8a04" />,
@@ -100,7 +100,7 @@ const tools: Tool[] = [
   {
     title: 'Calculadora de Jornada',
     desc: 'Calcula horas normais e noturnas por dia da semana com totais semanais e mensais (CLT).',
-    route: '/calculadora-jornada',
+    route: '/tools/calculadora-jornada.html',
     iconBg: '#f5f3ff',
     iconColor: '#9333ea',
     icon: <CalendarIcon color="#9333ea" />,
@@ -108,7 +108,7 @@ const tools: Tool[] = [
   {
     title: 'Custo de Empregado (CLT)',
     desc: 'Encargos patronais completos: CPP, GILRAT, Sistema S, FGTS, provisões e benefícios.',
-    route: '/custo-empregado',
+    route: '/tools/custo-empregado.html',
     iconBg: '#fff7ed',
     iconColor: '#ea580c',
     icon: <PeopleIcon color="#ea580c" />,
@@ -116,16 +116,14 @@ const tools: Tool[] = [
   {
     title: 'Conciliador de Crédito',
     desc: 'Concilia a planilha eSocial de Crédito do Trabalhador com os Movimentos da folha e gera guia do FGTS Digital.',
-    route: '/conciliador-credito',
-    iconBg: '#fff7ed',
+    route: '/tools/conciliador-credito.html',
+    iconBg: '#fdf2f8',
     iconColor: '#c2410c',
     icon: <ScalesIcon color="#c2410c" />,
   },
 ]
 
 export default function Dashboard() {
-  const navigate = useNavigate()
-
   return (
     <div className="page">
       <div className="card">
@@ -145,10 +143,11 @@ export default function Dashboard() {
 
         <div className="dashboard-grid">
           {tools.map((tool) => (
-            <div
+            <a
               key={tool.route}
+              href={tool.route}
               className="tool-card"
-              onClick={() => navigate(tool.route)}
+              style={{ textDecoration: 'none', color: 'inherit' }}
             >
               <div
                 className="tool-card-icon"
@@ -158,13 +157,10 @@ export default function Dashboard() {
               </div>
               <div className="tool-card-title">{tool.title}</div>
               <div className="tool-card-desc">{tool.desc}</div>
-              <button
-                className="tool-card-btn"
-                onClick={(e) => { e.stopPropagation(); navigate(tool.route) }}
-              >
+              <span className="tool-card-btn">
                 Abrir →
-              </button>
-            </div>
+              </span>
+            </a>
           ))}
         </div>
 

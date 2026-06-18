@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de Jornada</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-page:      #f4f5f7;
+    --card-bg:      #ffffff;
+    --card-border:  #e5e7eb;
+
+    --ink:          #0f172a;
+    --ink-soft:     #334155;
+    --ink-muted:    #6b7280;
+
+    --header-bg:    #1f2937;
+    --header-text:  #ffffff;
+
+    --row-border:   #f1f5f9;
+    --row-strong:   #e5e7eb;
+    --footer-bg:    #f3f4f6;
+
+    --input-border: #d1d5db;
+
+    --green:        #16a34a;
+    --green-bright: #22c55e;
+    --green-hover:  #15803d;
+    --red:          #dc2626;
+    --red-hover:    #b91c1c;
+    --purple:       #9333ea;
+    --orange:       #ea580c;
+
+    --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 24px -8px rgba(0,0,0,.06);
+  }
+
+  html, body {
+    background: var(--bg-page);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: var(--ink);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .page {
+    padding: 32px 16px 64px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 1280px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 36px 40px 40px;
+  }
+
+  /* título */
+  h1.title {
+    font-weight: 700;
+    font-size: 28px;
+    letter-spacing: -0.01em;
+    text-align: center;
+    color: var(--ink);
+    margin-bottom: 28px;
+  }
+
+  /* Replicar */
+  .top-actions { margin-bottom: 18px; }
+  .btn-replicar {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--green-bright);
+    color: #fff;
+    border: none;
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background .15s, transform .1s;
+  }
+  .btn-replicar:hover { background: var(--green); }
+  .btn-replicar:active { transform: translateY(1px); }
+  .btn-replicar svg { width: 16px; height: 16px; }
+
+  /* Tabela */
+  .table-wrap {
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--card-border);
+  }
+  table { width: 100%; border-collapse: collapse; background: #fff; }
+
+  thead th {
+    background: var(--header-bg);
+    color: var(--header-text);
+    font-weight: 700;
+    font-size: 14px;
+    padding: 16px 12px;
+    text-align: center;
+    line-height: 1.25;
+    letter-spacing: -.005em;
+    vertical-align: middle;
+  }
+
+  tbody td {
+    padding: 12px 12px;
+    text-align: center;
+    border-bottom: 1px solid var(--row-border);
+    font-size: 14px;
+    vertical-align: middle;
+    background: #fff;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+
+  .dia-cell {
+    font-weight: 500;
+    color: var(--ink);
+    font-size: 14px;
+  }
+
+  /* inputs time */
+  input[type="time"] {
+    font-family: inherit;
+    font-size: 14px;
+    padding: 7px 10px;
+    border: 1px solid var(--input-border);
+    border-radius: 6px;
+    background: #fff;
+    color: var(--ink);
+    width: 110px;
+    text-align: left;
+    transition: border-color .15s, box-shadow .15s;
+    font-variant-numeric: tabular-nums;
+  }
+  input[type="time"]:hover { border-color: #9ca3af; }
+  input[type="time"]:focus {
+    outline: none;
+    border-color: var(--green-bright);
+    box-shadow: 0 0 0 3px rgba(34,197,94,.15);
+  }
+
+  /* valores */
+  .val {
+    font-weight: 600;
+    font-size: 15px;
+    font-variant-numeric: tabular-nums;
+    display: inline-block;
+  }
+  .val-normais  { color: var(--green); }
+  .val-noturnas { color: var(--purple); }
+  .val-total    { color: var(--green); }
+  .val.zero     { opacity: .55; font-weight: 500; }
+
+  /* botão limpar */
+  .btn-limpar {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--red);
+    color: #fff;
+    border: none;
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 13px;
+    padding: 7px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background .15s, transform .1s;
+  }
+  .btn-limpar:hover { background: var(--red-hover); }
+  .btn-limpar:active { transform: translateY(1px); }
+  .btn-limpar svg { width: 14px; height: 14px; }
+
+  /* totais */
+  tfoot td {
+    background: var(--footer-bg);
+    padding: 16px 12px;
+    text-align: center;
+    border-top: 1px solid var(--row-strong);
+  }
+  tfoot tr.mensal td { background: #eef0f3; }
+  tfoot .total-label {
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--ink);
+  }
+
+  .saldo-dias {
+    font-weight: 700;
+    color: var(--orange);
+    font-size: 15px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (max-width: 900px) {
+    .card { padding: 24px 18px; }
+    .table-wrap { overflow-x: auto; }
+    table { min-width: 980px; }
+    h1.title { font-size: 22px; }
+  }
+</style>
+</head>
+<body><nav id="dp-panel-nav" style="position:fixed;top:0;left:0;right:0;z-index:99999;height:44px;background:#1f2937;display:flex;align-items:center;padding:0 20px;box-shadow:0 1px 4px rgba(0,0,0,.2);font-family:'Poppins',-apple-system,sans-serif;"><a href="/" style="color:#fff;text-decoration:none;font-weight:600;font-size:13px;display:inline-flex;align-items:center;gap:8px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>Painel DP</a><span style="margin-left:auto;color:rgba(255,255,255,.45);font-size:11px;font-weight:500;letter-spacing:.04em;">AUTOMAÇÕES DP</span></nav><div style="height:44px;"></div>
+
+<div class="page">
+  <div class="card">
+
+    <h1 class="title">Calculadora de Jornada</h1>
+
+    <div class="top-actions">
+      <button class="btn-replicar" id="btnReplicar" title="Copia os horários preenchidos na Segunda-feira para todos os outros dias da semana">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+        </svg>
+        Replicar
+      </button>
+    </div>
+
+    <div class="table-wrap">
+      <table id="tabela">
+        <thead>
+          <tr>
+            <th>Dia da<br>Semana</th>
+            <th>Entrada</th>
+            <th>Início do<br>Intervalo</th>
+            <th>Fim do<br>Intervalo</th>
+            <th>Saída</th>
+            <th>Horas<br>Normais</th>
+            <th>Horas<br>Noturnas</th>
+            <th>Total de<br>Horas</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+        <tfoot>
+          <tr class="semanal">
+            <td colspan="5" class="total-label">Total da Semana</td>
+            <td><span class="val val-normais zero" id="totSemNormais">00:00</span></td>
+            <td><span class="val val-noturnas zero" id="totSemNoturnas">00:00</span></td>
+            <td><span class="val val-total zero" id="totSemTotal">00:00</span></td>
+            <td>—</td>
+          </tr>
+          <tr class="mensal">
+            <td colspan="5" class="total-label">Total do Mês</td>
+            <td><span class="val val-normais zero" id="totMesNormais">00:00</span></td>
+            <td><span class="val val-noturnas zero" id="totMesNoturnas">00:00</span></td>
+            <td><span class="val val-total zero" id="totMesTotal">00:00</span></td>
+            <td><span class="saldo-dias" id="totMesDias">0,00</span></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════
+   Calculadora de Jornada — lógica CLT
+   ═══════════════════════════════════════════════════ */
+
+const DIAS = [
+  { id: 'seg', nome: 'Segunda-feira' },
+  { id: 'ter', nome: 'Terça-feira'   },
+  { id: 'qua', nome: 'Quarta-feira'  },
+  { id: 'qui', omnibus: 'Quinta-feira', nome: 'Quinta-feira'  },
+  { id: 'sex', nome: 'Sexta-feira'   },
+  { id: 'sab', nome: 'Sábado'        },
+  { id: 'dom', nome: 'Domingo'       }
+];
+
+const FATOR_NOTURNO = 60 / 52.5;
+const NOTURNO_INI   = 22 * 60;
+const NOTURNO_FIM   = 5  * 60;
+const MULT_MENSAL   = 5;
+
+function parseTime(str) {
+  if (!str || !/^\d{1,2}:\d{2}$/.test(str)) return null;
+  const [h, m] = str.split(':').map(Number);
+  if (h > 23 || m > 59) return null;
+  return h * 60 + m;
+}
+
+function fmtHHMM(min) {
+  if (min == null || isNaN(min)) return '00:00';
+  const sign = min < 0 ? '-' : '';
+  min = Math.abs(Math.round(min));
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return `${sign}${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+}
+
+function fmtDecimal(min) {
+  const decimal = min / 60;
+  return decimal.toFixed(2).replace('.', ',');
+}
+
+function calcularDia(entrada, iniInt, fimInt, saida) {
+  if (entrada == null || saida == null) return null;
+
+  let saidaAdj = saida;
+  if (saidaAdj <= entrada) saidaAdj += 1440;
+
+  let temIntervalo = (iniInt != null && fimInt != null);
+  let iniAdj = iniInt, fimAdj = fimInt;
+  if (temIntervalo) {
+    if (iniAdj < entrada) iniAdj += 1440;
+    if (fimAdj <= iniAdj) fimAdj += 1440;
+    if (iniAdj >= saidaAdj || fimAdj <= entrada) temIntervalo = false;
+  }
+
+  let totalMin = 0, noturnoMin = 0;
+  for (let m = entrada; m < saidaAdj; m++) {
+    if (temIntervalo && m >= iniAdj && m < fimAdj) continue;
+    totalMin++;
+    const h = ((m % 1440) + 1440) % 1440;
+    if (h >= NOTURNO_INI || h < NOTURNO_FIM) noturnoMin++;
+  }
+
+  // Súmula 60, II / TST
+  let prorrogMin = 0;
+  if (noturnoMin > 0) {
+    let cobriuNoturnoInteiro = false;
+    for (let dia = 0; dia <= 1; dia++) {
+      const ini = NOTURNO_INI + dia * 1440;
+      const fim = NOTURNO_FIM + 1440 + dia * 1440;
+      if (ini < entrada || fim > saidaAdj) continue;
+      let inteiro = true;
+      for (let m = ini; m < fim; m++) {
+        if (temIntervalo && m >= iniAdj && m < fimAdj) { inteiro = false; break; }
+      }
+      if (inteiro) { cobriuNoturnoInteiro = true; break; }
+    }
+    if (cobriuNoturnoInteiro) {
+      for (let dia = 0; dia <= 1; dia++) {
+        const fimNoturno = NOTURNO_FIM + 1440 + dia * 1440;
+        if (fimNoturno >= entrada && fimNoturno < saidaAdj) {
+          for (let m = fimNoturno; m < saidaAdj; m++) {
+            if (temIntervalo && m >= iniAdj && m < fimAdj) continue;
+            prorrogMin++;
+          }
+          break;
+        }
+      }
+    }
+  }
+
+  const noturnoTotalMin = noturnoMin + prorrogMin;
+  const noturnoFictoMin = noturnoTotalMin * FATOR_NOTURNO;
+  const normaisMin      = totalMin - noturnoTotalMin;
+  const totalComFicta   = normaisMin + noturnoFictoMin;
+
+  let intervaloMin = 0;
+  if (temIntervalo) intervaloMin = fimAdj - iniAdj;
+
+  return { totalMin, normaisMin, noturnoFictoMin, totalComFicta, intervaloMin };
+}
+
+function montarTabela() {
+  const tb = document.getElementById('tbody');
+  tb.innerHTML = '';
+  DIAS.forEach(d => {
+    const tr = document.createElement('tr');
+    tr.dataset.dia = d.id;
+    tr.innerHTML = `
+      <td class="dia-cell">${d.nome}</td>
+      <td><input type="time" data-campo="entrada"></td>
+      <td><input type="time" data-campo="iniInt"></td>
+      <td><input type="time" data-campo="fimInt"></td>
+      <td><input type="time" data-campo="saida"></td>
+      <td><span class="val val-normais zero" data-col="normais">00:00</span></td>
+      <td><span class="val val-noturnas zero" data-col="noturnas">00:00</span></td>
+      <td><span class="val val-total zero" data-col="total">00:00</span></td>
+      <td>
+        <button class="btn-limpar" data-acao="limpar" title="Limpa todos os campos de horário deste dia específico">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+          </svg>
+          Limpar
+        </button>
+      </td>
+    `;
+    tb.appendChild(tr);
+  });
+}
+
+function setVal(id, min) {
+  const el = document.getElementById(id);
+  el.textContent = fmtHHMM(min);
+  el.classList.toggle('zero', min === 0);
+}
+
+function recalcular() {
+  let somaNormais = 0, somaNoturnas = 0, somaTotal = 0;
+
+  document.querySelectorAll('#tbody tr').forEach((tr, idx) => {
+    const entrada = parseTime(tr.querySelector('[data-campo="entrada"]').value);
+    const iniInt  = parseTime(tr.querySelector('[data-campo="iniInt"]').value);
+    const fimInt  = parseTime(tr.querySelector('[data-campo="fimInt"]').value);
+    const saida   = parseTime(tr.querySelector('[data-campo="saida"]').value);
+
+    const calc = calcularDia(entrada, iniInt, fimInt, saida);
+    const elNormais  = tr.querySelector('[data-col="normais"]');
+    const elNoturnas = tr.querySelector('[data-col="noturnas"]');
+    const elTotal    = tr.querySelector('[data-col="total"]');
+
+    if (!calc) {
+      [elNormais, elNoturnas, elTotal].forEach(e => {
+        e.textContent = '00:00';
+        e.classList.add('zero');
+      });
+      return;
+    }
+
+    elNormais.textContent  = fmtHHMM(calc.normaisMin);
+    elNoturnas.textContent = fmtHHMM(calc.noturnoFictoMin);
+    elTotal.textContent    = fmtHHMM(calc.totalComFicta);
+
+    elNormais.classList.toggle('zero',  calc.normaisMin === 0);
+    elNoturnas.classList.toggle('zero', calc.noturnoFictoMin === 0);
+    elTotal.classList.toggle('zero',    calc.totalComFicta === 0);
+
+    somaNormais  += calc.normaisMin;
+    somaNoturnas += calc.noturnoFictoMin;
+    somaTotal    += calc.totalComFicta;
+  });
+
+  setVal('totSemNormais',  somaNormais);
+  setVal('totSemNoturnas', somaNoturnas);
+  setVal('totSemTotal',    somaTotal);
+
+  setVal('totMesNormais',  somaNormais  * MULT_MENSAL);
+  setVal('totMesNoturnas', somaNoturnas * MULT_MENSAL);
+  setVal('totMesTotal',    somaTotal    * MULT_MENSAL);
+  document.getElementById('totMesDias').textContent = fmtDecimal(somaTotal * MULT_MENSAL);
+}
+
+function replicarSegunda() {
+  const linhas = document.querySelectorAll('#tbody tr');
+  const seg = linhas[0];
+  const v = ['entrada','iniInt','fimInt','saida'].reduce((acc, c) => {
+    acc[c] = seg.querySelector(`[data-campo="${c}"]`).value;
+    return acc;
+  }, {});
+  for (let i = 1; i < linhas.length; i++) {
+    Object.keys(v).forEach(c => {
+      linhas[i].querySelector(`[data-campo="${c}"]`).value = v[c];
+    });
+  }
+  recalcular();
+}
+
+function limparLinha(tr) {
+  tr.querySelectorAll('input[type="time"]').forEach(i => i.value = '');
+  recalcular();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  montarTabela();
+  recalcular();
+  document.getElementById('tbody').addEventListener('input', recalcular);
+  document.getElementById('tbody').addEventListener('click', e => {
+    const btn = e.target.closest('[data-acao="limpar"]');
+    if (btn) limparLinha(btn.closest('tr'));
+  });
+  document.getElementById('btnReplicar').addEventListener('click', replicarSegunda);
+});
+</script>
+</body>
+</html>

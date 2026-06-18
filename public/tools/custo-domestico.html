@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de Custo de Empregado Doméstico</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fflate@0.8.2/umd/index.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-page:      #f4f5f7;
+    --card-bg:      #ffffff;
+    --card-border:  #e5e7eb;
+
+    --ink:          #0f172a;
+    --ink-soft:     #334155;
+    --ink-muted:    #6b7280;
+
+    --header-bg:    #1f2937;
+    --header-text:  #ffffff;
+
+    --row-border:   #f1f5f9;
+    --row-strong:   #e5e7eb;
+    --footer-bg:    #f3f4f6;
+
+    --input-border: #d1d5db;
+    --input-bg:     #fff;
+
+    --green:        #16a34a;
+    --green-bright: #22c55e;
+    --green-hover:  #15803d;
+    --red:          #dc2626;
+    --red-hover:    #b91c1c;
+    --purple:       #9333ea;
+    --orange:       #ea580c;
+    --blue:         #2563eb;
+    --blue-hover:   #1d4ed8;
+
+    --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 24px -8px rgba(0,0,0,.06);
+  }
+
+  html, body {
+    background: var(--bg-page);
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: var(--ink);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .page { padding: 32px 16px 64px; display: flex; justify-content: center; }
+
+  .card {
+    width: 100%;
+    max-width: 1280px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 36px 40px 40px;
+  }
+
+  h1.title {
+    font-weight: 700;
+    font-size: 28px;
+    letter-spacing: -0.01em;
+    text-align: center;
+    color: var(--ink);
+    margin-bottom: 28px;
+  }
+
+  .top-actions { margin-bottom: 22px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    border: none; font-family: inherit; font-weight: 600; font-size: 14px;
+    padding: 10px 18px; border-radius: 8px; cursor: pointer;
+    transition: background .15s, transform .1s; color: #fff;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn svg { width: 16px; height: 16px; }
+  .btn-export { background: var(--green-bright); }
+  .btn-export:hover { background: var(--green); }
+  .btn-limpar { background: var(--red); }
+  .btn-limpar:hover { background: var(--red-hover); }
+
+  .section {
+    border: 1px solid var(--card-border);
+    border-radius: 10px; overflow: hidden;
+    margin-bottom: 22px; background: #fff;
+  }
+  .section-header {
+    background: var(--header-bg); color: var(--header-text);
+    font-weight: 700; font-size: 14px; padding: 14px 18px;
+    letter-spacing: .01em; display: flex; align-items: center; gap: 10px;
+  }
+  .section-header .badge {
+    background: rgba(255,255,255,.18);
+    width: 22px; height: 22px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700;
+  }
+  .section-body { padding: 20px 22px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px 22px;
+  }
+  /* layout dados cadastrais: esquerda inputs, direita adicionais */
+  .grid-cadastro {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 40px;
+  }
+  .col-esquerda, .col-direita { display: flex; flex-direction: column; gap: 16px; }
+  .adicionais-titulo {
+    font-size: 12px; font-weight: 700; color: var(--header-bg);
+    text-transform: uppercase; letter-spacing: .06em;
+    border-bottom: 1px solid var(--row-strong); padding-bottom: 6px;
+  }
+
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label {
+    font-size: 12px; font-weight: 600; color: var(--ink-soft); letter-spacing: .01em;
+  }
+  .field .help { font-size: 11px; color: var(--ink-muted); font-weight: 400; margin-top: 2px; }
+
+  input[type="number"], input[type="text"], select {
+    font-family: inherit; font-size: 14px; padding: 9px 12px;
+    border: 1px solid var(--input-border); border-radius: 7px;
+    background: var(--input-bg); color: var(--ink); width: 100%;
+    transition: border-color .15s, box-shadow .15s;
+    font-variant-numeric: tabular-nums; font-weight: 500;
+  }
+  input:hover, select:hover { border-color: #9ca3af; }
+  input:focus, select:focus {
+    outline: none; border-color: var(--green-bright);
+    box-shadow: 0 0 0 3px rgba(34,197,94,.15);
+  }
+  input[readonly] { background: #f9fafb; color: var(--ink-soft); font-weight: 600; cursor: default; }
+
+  .field.highlight input {
+    background: #ecfdf5; border-color: var(--green-bright);
+    color: var(--green-hover); font-weight: 700; font-size: 15px;
+  }
+  .field.highlight label { color: var(--green-hover); }
+
+  /* checkbox line */
+  .check-line {
+    display: flex !important; align-items: center; gap: 8px; cursor: pointer;
+    padding: 9px 12px; border: 1px solid var(--input-border); border-radius: 7px;
+    background: var(--input-bg); transition: border-color .15s, background .15s;
+    font-size: 13px !important; font-weight: 500 !important; color: var(--ink) !important;
+    user-select: none;
+  }
+  .check-line:hover { border-color: #9ca3af; }
+  .check-line input[type="checkbox"] {
+    width: 16px; height: 16px; accent-color: var(--green-bright); cursor: pointer; margin: 0;
+  }
+  .check-line input[type="checkbox"]:checked + span { color: var(--green-hover); font-weight: 600; }
+  .field:has(.check-line input:checked) .check-line {
+    background: #ecfdf5; border-color: var(--green-bright);
+  }
+
+  .grid-spacer {
+    grid-column: 1 / -1; height: 0;
+    border-top: 1px dashed var(--card-border); margin: 4px 0;
+  }
+
+  /* tabela demonstrativo */
+  .table-wrap {
+    border-radius: 10px; overflow: hidden;
+    border: 1px solid var(--card-border); margin-top: 8px;
+  }
+  table.demo { width: 100%; border-collapse: collapse; background: #fff; }
+  table.demo thead th {
+    background: var(--blue); color: #fff; font-weight: 700; font-size: 12px;
+    padding: 12px 12px; text-align: center; letter-spacing: .03em; text-transform: uppercase;
+  }
+  table.demo tbody td {
+    padding: 11px 14px; font-size: 13.5px; border-bottom: 1px solid var(--row-border);
+    vertical-align: middle; background: #fff; font-variant-numeric: tabular-nums;
+  }
+  table.demo tbody tr.group-row td {
+    background: #eef0f3; font-weight: 700; color: var(--ink); font-size: 12.5px;
+    text-transform: uppercase; letter-spacing: .04em; padding: 10px 14px;
+  }
+  table.demo tbody tr.subtotal-row td {
+    background: #e0e7ff; font-weight: 700; color: #1e3a8a;
+  }
+  table.demo tbody td.right { text-align: right; }
+  table.demo tbody td.center { text-align: center; }
+  table.demo tbody td.label { text-align: left; }
+
+  table.demo tfoot tr td {
+    padding: 14px 14px; font-weight: 700; background: var(--header-bg);
+    color: #fff; font-size: 14px; font-variant-numeric: tabular-nums;
+  }
+  table.demo tfoot tr.liquido td { background: #4b5563; }
+  table.demo tfoot tr td.right { text-align: right; }
+  table.demo tfoot tr td.label { text-align: left; }
+
+  @media (max-width: 900px) {
+    .card { padding: 22px 16px; }
+    h1.title { font-size: 22px; }
+    .section-body { padding: 16px 14px; }
+    .grid { grid-template-columns: 1fr 1fr; }
+    .grid-cadastro { grid-template-columns: 1fr; gap: 16px; }
+    .table-wrap { overflow-x: auto; }
+    table.demo { min-width: 640px; }
+  }
+  @media (max-width: 540px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+
+  .info-irrf {
+    margin-top: 14px;
+    padding: 12px 14px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #1e3a8a;
+    line-height: 1.55;
+    font-weight: 400;
+  }
+  .info-irrf strong { font-weight: 700; }
+</style>
+</head>
+<body><nav id="dp-panel-nav" style="position:fixed;top:0;left:0;right:0;z-index:99999;height:44px;background:#1f2937;display:flex;align-items:center;padding:0 20px;box-shadow:0 1px 4px rgba(0,0,0,.2);font-family:'Poppins',-apple-system,sans-serif;"><a href="/" style="color:#fff;text-decoration:none;font-weight:600;font-size:13px;display:inline-flex;align-items:center;gap:8px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>Painel DP</a><span style="margin-left:auto;color:rgba(255,255,255,.45);font-size:11px;font-weight:500;letter-spacing:.04em;">AUTOMAÇÕES DP</span></nav><div style="height:44px;"></div>
+
+<div class="page">
+  <div class="card">
+
+    <h1 class="title">Calculadora de Custo de Empregado Doméstico</h1>
+
+    <div class="top-actions">
+      <button class="btn btn-export" id="btnExport" title="Gera uma planilha Excel com fórmulas">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Planilha Excel
+      </button>
+      <button class="btn btn-limpar" id="btnLimpar" title="Restaura todos os campos aos valores padrão">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+        </svg>
+        Limpar
+      </button>
+    </div>
+
+    <!-- ━━━━━━━━ 1. DADOS E SALÁRIO ━━━━━━━━ -->
+    <section class="section">
+      <div class="section-header">
+        <span class="badge">1</span>
+        Dados e Salário
+      </div>
+      <div class="section-body">
+        <div class="grid-cadastro">
+          <div class="col-esquerda">
+            <div class="field">
+              <label for="salBase">Salário Base do Doméstico (R$)</label>
+              <input type="number" id="salBase" value="" step="0.01" min="0" placeholder="0,00">
+              <span class="help">Não pode ser inferior ao salário mínimo (ou piso regional)</span>
+            </div>
+
+            <div class="field">
+              <label for="depend">Nº de Dependentes (IRRF)</label>
+              <input type="number" id="depend" value="0" step="1" min="0">
+              <span class="help">Dedução de R$ 189,59 por dependente (modelo completo)</span>
+            </div>
+          </div>
+
+          <div class="col-direita">
+            <div class="adicionais-titulo">Adicionais</div>
+
+            <div class="field">
+              <label class="check-line">
+                <input type="checkbox" id="chkHorasExtras">
+                <span>Horas Extras / Adicional Noturno</span>
+              </label>
+              <input type="number" id="horasExtras" value="0" step="0.01" min="0" placeholder="Valor mensal (R$)" style="display:none;">
+            </div>
+
+            <div class="field">
+              <label class="check-line">
+                <input type="checkbox" id="chkVT">
+                <span>Vale-Transporte</span>
+              </label>
+              <input type="number" id="vtTotal" value="0" step="0.01" min="0" placeholder="Custo total mensal (R$)" style="display:none;">
+            </div>
+
+            <div class="field highlight">
+              <label for="brutoTotal">Remuneração Bruta Total (R$)</label>
+              <input type="text" id="brutoTotal" readonly>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ━━━━━━━━ 2. ALÍQUOTAS (EDITÁVEL) ━━━━━━━━ -->
+    <section class="section">
+      <div class="section-header">
+        <span class="badge">2</span>
+        Alíquotas do Simples Doméstico
+      </div>
+      <div class="section-body">
+        <div class="grid">
+          <div class="field">
+            <label for="aliqInssPat">INSS Patronal (%)</label>
+            <input type="number" id="aliqInssPat" value="8.00" step="0.01" min="0">
+          </div>
+          <div class="field">
+            <label for="aliqGilrat">GILRAT — Seguro Acidente (%)</label>
+            <input type="number" id="aliqGilrat" value="0.80" step="0.01" min="0">
+          </div>
+          <div class="field">
+            <label for="aliqFgts">FGTS Mensal (%)</label>
+            <input type="number" id="aliqFgts" value="8.00" step="0.01" min="0">
+          </div>
+          <div class="field">
+            <label for="aliqMulta">Antecipação Multa FGTS (%)</label>
+            <input type="number" id="aliqMulta" value="3.20" step="0.01" min="0">
+            <span class="help">Reserva indenizatória — Lei 13.932/2019</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ━━━━━━━━ 3. DEMONSTRATIVO ━━━━━━━━ -->
+    <section class="section">
+      <div class="section-header">
+        <span class="badge">3</span>
+        Demonstrativo Detalhado
+      </div>
+      <div class="section-body">
+        <div class="table-wrap">
+          <table class="demo">
+            <thead>
+              <tr>
+                <th style="width:42%;text-align:left;padding-left:18px;">Rubrica</th>
+                <th style="width:22%;">Base de Cálculo</th>
+                <th style="width:14%;">Alíquota</th>
+                <th style="width:22%;">Valor (R$)</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyDemo"></tbody>
+            <tfoot id="tfootDemo"></tfoot>
+          </table>
+        </div>
+
+        <div class="info-irrf" id="infoIrrf"></div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   Calculadora de Custo de Empregado Doméstico — Lógica
+   Base legal: LC 150/2015 (Simples Doméstico), eSocial Doméstico,
+   Lei 8.212/91, tabelas INSS/IRRF 2026
+   ═══════════════════════════════════════════════════════════ */
+
+const els = {
+  salBase:    document.getElementById('salBase'),
+  depend:     document.getElementById('depend'),
+  chkHorasExtras: document.getElementById('chkHorasExtras'),
+  horasExtras: document.getElementById('horasExtras'),
+  chkVT:      document.getElementById('chkVT'),
+  vtTotal:    document.getElementById('vtTotal'),
+  brutoTotal: document.getElementById('brutoTotal'),
+  aliqInssPat: document.getElementById('aliqInssPat'),
+  aliqGilrat: document.getElementById('aliqGilrat'),
+  aliqFgts:   document.getElementById('aliqFgts'),
+  aliqMulta:  document.getElementById('aliqMulta'),
+};
+
+/* ─── Helpers ─── */
+const BRL = v => 'R$ ' + (Number(v) || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+const PCT = v => (Number(v) || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '%';
+const num = el => Number((el.value || '0').toString().replace(',', '.')) || 0;
+
+/* ─── Tabelas 2026 ─── */
+const TETO_INSS = 8475.55;
+const FAIXAS_INSS = [
+  { limite: 1621.00, aliq: 0.075 },
+  { limite: 2902.84, aliq: 0.09  },
+  { limite: 4354.27, aliq: 0.12  },
+  { limite: 8475.55, aliq: 0.14  },
+];
+const DEDUCAO_DEPENDENTE = 189.59;
+const DESCONTO_SIMPLIFICADO = 607.20;  // 25% de R$ 2.428,80 (1ª faixa) — Lei 9.250/95
+// Tabela IRRF progressiva mensal 2026
+const FAIXAS_IRRF = [
+  { limite: 2428.80,  aliq: 0,     deduz: 0      },
+  { limite: 2826.65,  aliq: 0.075, deduz: 182.16 },
+  { limite: 3751.05,  aliq: 0.15,  deduz: 394.16 },
+  { limite: 4664.68,  aliq: 0.225, deduz: 675.49 },
+  { limite: Infinity, aliq: 0.275, deduz: 908.73 },
+];
+// Redutor da reforma (Lei 15.270/2025): zera o IR de quem ganha até R$ 5.000;
+// reduz gradualmente até R$ 7.350 de rendimento bruto
+const REDUTOR_ISENCAO = 5000.00;
+const REDUTOR_TETO    = 7350.00;
+const REDUTOR_MAX     = 312.89;  // redução máxima aplicada na 4ª faixa
+
+/* INSS progressivo do empregado (segurado) */
+function calcInssSegurado(base) {
+  const b = Math.min(base, TETO_INSS);
+  let imposto = 0, anterior = 0;
+  for (const f of FAIXAS_INSS) {
+    if (b > anterior) {
+      imposto += (Math.min(b, f.limite) - anterior) * f.aliq;
+      anterior = f.limite;
+    } else break;
+  }
+  return imposto;
+}
+
+/* Aplica tabela progressiva a uma base de cálculo */
+function irrfTabela(base) {
+  if (base <= 0) return 0;
+  for (const f of FAIXAS_IRRF) {
+    if (base <= f.limite) return Math.max(0, base * f.aliq - f.deduz);
+  }
+  return 0;
+}
+
+/* IRRF do empregado — escolhe o modelo MAIS VANTAJOSO (menor imposto):
+   • Modelo COMPLETO: deduz INSS + dependentes
+   • Modelo SIMPLIFICADO: deduz R$ 607,20 (substitui todas as deduções legais)
+   Depois aplica o redutor da reforma (Lei 15.270/2025) sobre o salário bruto.
+   Retorna {valor, modelo, baseCompleto, baseSimplificado, semRedutor} */
+function calcIrrf(brutoMensal, inssSeg, dependentes) {
+  // Base pelo modelo completo (deduções legais)
+  const baseCompleto = Math.max(0, brutoMensal - inssSeg - dependentes * DEDUCAO_DEPENDENTE);
+  // Base pelo modelo simplificado
+  const baseSimplificado = Math.max(0, brutoMensal - DESCONTO_SIMPLIFICADO);
+
+  const impCompleto = irrfTabela(baseCompleto);
+  const impSimplificado = irrfTabela(baseSimplificado);
+
+  // Escolhe o menor imposto (mais vantajoso ao empregado)
+  let imposto, modelo, baseUsada;
+  if (impSimplificado <= impCompleto) {
+    imposto = impSimplificado; modelo = 'Simplificado'; baseUsada = baseSimplificado;
+  } else {
+    imposto = impCompleto; modelo = 'Completo'; baseUsada = baseCompleto;
+  }
+  const semRedutor = imposto;
+
+  // Redutor da reforma (Lei 15.270/2025) sobre o rendimento bruto
+  if (brutoMensal <= REDUTOR_ISENCAO) {
+    imposto = 0;
+  } else if (brutoMensal <= REDUTOR_TETO) {
+    const redutor = REDUTOR_MAX * (REDUTOR_TETO - brutoMensal) / (REDUTOR_TETO - REDUTOR_ISENCAO);
+    imposto = Math.max(0, imposto - redutor);
+  }
+
+  return { valor: imposto, modelo, baseCompleto, baseSimplificado, baseUsada, semRedutor };
+}
+
+/* ─── Toggles ─── */
+function toggleHE() { els.horasExtras.style.display = els.chkHorasExtras.checked ? '' : 'none'; }
+function toggleVT() { els.vtTotal.style.display = els.chkVT.checked ? '' : 'none'; }
+
+/* ─── Cálculo principal ─── */
+function calcular() {
+  const salBase = num(els.salBase);
+  const he = els.chkHorasExtras.checked ? num(els.horasExtras) : 0;
+  const dependentes = num(els.depend);
+
+  // Remuneração bruta = salário base + horas extras/adicionais
+  const bruto = salBase + he;
+  els.brutoTotal.value = BRL(bruto);
+
+  // Alíquotas patronais
+  const aliqInssPat = num(els.aliqInssPat);
+  const aliqGilrat  = num(els.aliqGilrat);
+  const aliqFgts    = num(els.aliqFgts);
+  const aliqMulta   = num(els.aliqMulta);
+
+  // A — Retenções do empregado (compõem o DAE)
+  const inssSeg = calcInssSegurado(bruto);
+  const irrfObj = calcIrrf(bruto, inssSeg, dependentes);
+  const irrf = irrfObj.valor;
+  const baseIrrf = irrfObj.baseUsada;
+  const totalRetencoes = inssSeg + irrf;
+
+  // B — Encargos patronais (compõem o DAE)
+  const inssPat = bruto * (aliqInssPat / 100);
+  const gilrat  = bruto * (aliqGilrat  / 100);
+  const fgts    = bruto * (aliqFgts    / 100);
+  const multa   = bruto * (aliqMulta   / 100);
+  const totalPatronal = inssPat + gilrat + fgts + multa;
+
+  // Total DAE
+  const totalDAE = totalRetencoes + totalPatronal;
+
+  // C — Provisões
+  const ferias = bruto * (11.1111 / 100);
+  const decimo = bruto * (8.3333  / 100);
+  const baseProv = ferias + decimo;
+  const aliqEncProv = aliqInssPat + aliqGilrat + aliqFgts + aliqMulta;
+  const encProv = baseProv * (aliqEncProv / 100);
+  const totalProv = ferias + decimo + encProv;
+
+  // Vale-transporte (desconto de até 6% do salário base)
+  const vtTotal = els.chkVT.checked ? num(els.vtTotal) : 0;
+  const vtDesc = Math.min(vtTotal, salBase * 0.06);
+  const vtLiq = vtTotal - vtDesc;
+
+  // Salário líquido do empregado
+  const liquidoEmpregado = bruto - inssSeg - irrf;
+
+  // Custos totais
+  const custoMensal = liquidoEmpregado + totalDAE + vtLiq;
+  const custoComProv = custoMensal + totalProv;
+
+  renderTabela({
+    bruto, salBase, he, inssSeg, irrf, irrfModelo: irrfObj.modelo, totalRetencoes,
+    inssPat, gilrat, fgts, multa, totalPatronal, totalDAE,
+    ferias, decimo, baseProv, encProv, aliqEncProv, totalProv,
+    vtTotal, vtDesc, vtLiq,
+    liquidoEmpregado, custoMensal, custoComProv,
+    aliqInssPat, aliqGilrat, aliqFgts, aliqMulta,
+    baseIrrf, dependentes,
+  });
+}
+
+function renderTabela(d) {
+  const tbody = document.getElementById('tbodyDemo');
+  const tfoot = document.getElementById('tfootDemo');
+
+  const linha = (label, base, aliq, valor, cls='') => `
+    <tr class="${cls}">
+      <td class="label" style="padding-left:18px;">${label}</td>
+      <td class="right">${base != null ? BRL(base) : '—'}</td>
+      <td class="center">${aliq != null ? PCT(aliq) : '—'}</td>
+      <td class="right">${BRL(valor)}</td>
+    </tr>`;
+  const grupo = txt => `<tr class="group-row"><td colspan="4" style="padding-left:18px;">${txt}</td></tr>`;
+  const subtotal = (txt, v) => `
+    <tr class="subtotal-row">
+      <td class="label" colspan="3" style="padding-left:18px;text-align:left;font-weight:700;">${txt}</td>
+      <td class="right">${BRL(v)}</td>
+    </tr>`;
+
+  let html = '';
+
+  // A — Retenções
+  html += grupo('A — Retenções do Empregado (descontadas no DAE)');
+  html += linha('INSS Segurado (progressivo)', d.bruto, (d.bruto>0? d.inssSeg/d.bruto*100 : 0), d.inssSeg);
+  html += linha(`IRRF Segurado <span style="font-weight:400;color:#6b7280;">(modelo ${d.irrfModelo})</span>`, d.baseIrrf, (d.baseIrrf>0? d.irrf/d.baseIrrf*100 : 0), d.irrf);
+  html += subtotal('Total Retenções (A)', d.totalRetencoes);
+
+  // B — Encargos Patronais
+  html += grupo('B — Encargos Patronais (compõem o DAE)');
+  html += linha('INSS Patronal', d.bruto, d.aliqInssPat, d.inssPat);
+  html += linha('GILRAT (Seguro Acidente)', d.bruto, d.aliqGilrat, d.gilrat);
+  html += linha('FGTS Mensal', d.bruto, d.aliqFgts, d.fgts);
+  html += linha('Antecipação Multa FGTS', d.bruto, d.aliqMulta, d.multa);
+  html += subtotal('Total Encargos Patronais (B)', d.totalPatronal);
+
+  // DAE total
+  html += subtotal('Total Guia DAE (A + B)', d.totalDAE);
+
+  // C — Provisões
+  html += grupo('C — Provisões (Custo Anual Diluído)');
+  html += linha('Férias + 1/3', d.bruto, 11.1111, d.ferias);
+  html += linha('13º Salário', d.bruto, 8.3333, d.decimo);
+  html += linha('Encargos s/ Provisões', d.baseProv, d.aliqEncProv, d.encProv);
+  html += subtotal('Total Provisões (C)', d.totalProv);
+
+  // VT (se houver)
+  if (d.vtTotal > 0) {
+    html += grupo('D — Vale-Transporte (Custo Líquido)');
+    html += linha(`Vale-Transporte (− ${BRL(d.vtDesc)} desc. empregado)`, d.vtTotal, null, d.vtLiq);
+    html += subtotal('Total Vale-Transporte (D)', d.vtLiq);
+  }
+
+  tbody.innerHTML = html;
+
+  tfoot.innerHTML = `
+    <tr class="liquido">
+      <td class="label" colspan="3" style="padding-left:18px;">Salário Líquido (Empregado)</td>
+      <td class="right">${BRL(d.liquidoEmpregado)}</td>
+    </tr>
+    <tr>
+      <td class="label" colspan="3" style="padding-left:18px;">Custo Total Mensal (Líquido + DAE${d.vtLiq>0?' + VT':''})</td>
+      <td class="right">${BRL(d.custoMensal)}</td>
+    </tr>
+    <tr>
+      <td class="label" colspan="3" style="padding-left:18px;">Custo Total Mensal + Provisões</td>
+      <td class="right">${BRL(d.custoComProv)}</td>
+    </tr>
+  `;
+
+  // Nota explicativa do IRRF
+  const info = document.getElementById('infoIrrf');
+  if (d.irrf > 0 || d.bruto > 0) {
+    info.innerHTML = `<strong>ℹ️ Sobre o IRRF:</strong> o cálculo aplica automaticamente o modelo mais vantajoso ao empregado (menor imposto). ` +
+      `O modelo <strong>Completo</strong> deduz INSS + R$ 189,59 por dependente; o <strong>Simplificado</strong> deduz R$ 607,20 fixos (substitui todas as deduções legais). ` +
+      `Neste cálculo foi usado o modelo <strong>${d.irrfModelo}</strong>. ` +
+      `Pela reforma do IR (Lei 15.270/2025), quem recebe até R$ 5.000/mês fica isento, com redução gradual até R$ 7.350.`;
+    info.style.display = '';
+  } else {
+    info.style.display = 'none';
+  }
+}
+
+/* ─── Reset ─── */
+function limpar() {
+  els.salBase.value = '';
+  els.depend.value = '0';
+  els.chkHorasExtras.checked = false;
+  els.horasExtras.value = '0';
+  els.chkVT.checked = false;
+  els.vtTotal.value = '0';
+  els.aliqInssPat.value = '8.00';
+  els.aliqGilrat.value = '0.80';
+  els.aliqFgts.value = '8.00';
+  els.aliqMulta.value = '3.20';
+  toggleHE();
+  toggleVT();
+  calcular();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Exportação para Excel — planilha diagramada com fórmulas
+   ═══════════════════════════════════════════════════════════ */
+function exportarExcel() {
+  const wb = XLSX.utils.book_new();
+  const ws = {};
+
+  const C = {
+    azulMarinho:'203764', azulMedio:'4472C4', azulClaro:'D9E1F2',
+    cinza:'EDEDED', amarelo:'FFFFE0', branco:'FFFFFF', preto:'000000',
+    bordaSuave:'BFBFBF', bordaForte:'000000', verde:'C6EFCE', verdeInk:'006100'
+  };
+
+  const fontBase  = {name:'Verdana', sz:9, color:{rgb:C.preto}};
+  const fontBold  = {name:'Verdana', sz:9, color:{rgb:C.preto}, bold:true};
+  const fontWhite = {name:'Verdana', sz:9, color:{rgb:C.branco}, bold:true};
+  const fontAzul  = {name:'Verdana', sz:9, color:{rgb:C.azulMarinho}, bold:true};
+
+  const bThin = {style:'thin', color:{rgb:C.bordaSuave}};
+  const bFull = {top:bThin, bottom:bThin, left:bThin, right:bThin};
+  const bBot  = {bottom:{style:'medium', color:{rgb:C.azulMarinho}}};
+  const bForte = c => ({style:'medium', color:{rgb:C.bordaForte}});
+
+  const sTitle = {font:fontWhite, fill:{patternType:'solid',fgColor:{rgb:C.azulMarinho}}, alignment:{horizontal:'center',vertical:'center'}, border:bFull};
+  const sSection = {font:fontAzul, alignment:{horizontal:'left',vertical:'center'}, border:bBot};
+  const sLabel = {font:fontBold, alignment:{horizontal:'left',vertical:'center'}, border:{right:bThin}};
+  const sInput = {font:fontBase, fill:{patternType:'solid',fgColor:{rgb:C.amarelo}}, alignment:{horizontal:'right',vertical:'center'}, border:bFull};
+  const sInputCenter = {font:fontBase, fill:{patternType:'solid',fgColor:{rgb:C.amarelo}}, alignment:{horizontal:'center',vertical:'center'}, border:bFull};
+  const sDestaque = {font:fontAzul, fill:{patternType:'solid',fgColor:{rgb:C.azulClaro}}, alignment:{horizontal:'right',vertical:'center'}, border:{top:{style:'medium'},bottom:{style:'medium'},left:{style:'medium'},right:{style:'medium'}}};
+  const sDestaqueLabel = {font:{...fontBold,color:{rgb:'444444'}}, alignment:{horizontal:'right',vertical:'center'}, border:{top:{style:'medium'},bottom:{style:'medium'},left:{style:'medium'},right:bThin}};
+  const sColHeader = {font:fontWhite, fill:{patternType:'solid',fgColor:{rgb:C.azulMedio}}, alignment:{horizontal:'center',vertical:'center'}, border:bFull};
+  const sGroup = {font:fontBold, fill:{patternType:'solid',fgColor:{rgb:C.cinza}}, alignment:{horizontal:'left',vertical:'center'}, border:bFull};
+  const sRubLabel = {font:fontBase, alignment:{horizontal:'left',vertical:'center'}, border:{right:bThin, bottom:{style:'thin',color:{rgb:'D9D9D9'}}}};
+  const sRubBase = {font:fontBase, alignment:{horizontal:'right',vertical:'center'}, border:{right:bThin, bottom:{style:'thin',color:{rgb:'D9D9D9'}}}};
+  const sRubAliq = {font:fontBase, alignment:{horizontal:'center',vertical:'center'}, border:{right:bThin, bottom:{style:'thin',color:{rgb:'D9D9D9'}}}};
+  const sSubtotal = {font:fontAzul, fill:{patternType:'solid',fgColor:{rgb:C.azulClaro}}, alignment:{horizontal:'right',vertical:'center'}, border:bFull};
+  const sSubtotalLabel = {font:fontAzul, fill:{patternType:'solid',fgColor:{rgb:C.azulClaro}}, alignment:{horizontal:'left',vertical:'center'}, border:{top:bThin,bottom:bThin,left:bThin,right:bThin}};
+  const sDAE = {font:fontWhite, fill:{patternType:'solid',fgColor:{rgb:C.azulMedio}}, alignment:{horizontal:'right',vertical:'center'}, border:bFull};
+  const sDAELabel = {font:fontWhite, fill:{patternType:'solid',fgColor:{rgb:C.azulMedio}}, alignment:{horizontal:'left',vertical:'center'}, border:bFull};
+  const sLiquido = {font:{...fontBold,color:{rgb:'444444'}}, fill:{patternType:'solid',fgColor:{rgb:C.branco}}, alignment:{horizontal:'right',vertical:'center'}, border:{top:{style:'medium'},bottom:{style:'medium'},left:{style:'medium'},right:bThin}};
+  const sLiquidoLabel = {font:{...fontBold,color:{rgb:'444444'}}, fill:{patternType:'solid',fgColor:{rgb:C.branco}}, alignment:{horizontal:'left',vertical:'center'}, border:{top:{style:'medium'},bottom:{style:'medium'},left:{style:'medium'},right:bThin}};
+  const sFinal = {font:fontWhite, fill:{patternType:'solid',fgColor:{rgb:C.azulMarinho}}, alignment:{horizontal:'right',vertical:'center'}, border:{top:{style:'medium'},bottom:{style:'medium'},left:{style:'medium'},right:{style:'medium'}}};
+  const sFinalLabel = {font:fontWhite, fill:{patternType:'solid',fgColor:{rgb:C.azulMarinho}}, alignment:{horizontal:'left',vertical:'center'}, border:{top:{style:'medium'},bottom:{style:'medium'},left:{style:'medium'},right:bThin}};
+
+  const setCell = (ref, opts) => { ws[ref] = opts; };
+  const txt   = (r, v, s) => setCell(r, {t:'s', v, s});
+  const numr  = (r, v, s, fmt='"R$" #,##0.00') => setCell(r, {t:'n', v, z:fmt, s});
+  const pct   = (r, v, s) => setCell(r, {t:'n', v: v/100, z:'0.00%', s});
+  const fNum  = (r, f, s, fmt='"R$" #,##0.00') => setCell(r, {t:'n', f:String(f).replace(/^=/,''), z:fmt, s});
+  const fPct  = (r, f, s) => setCell(r, {t:'n', f:String(f).replace(/^=/,''), z:'0.00%', s});
+
+  ws['!cols'] = [
+    {wch:3}, {wch:42}, {wch:35.6}, {wch:16}, {wch:19}, {wch:3}
+  ];
+  ws['!merges'] = [];
+  ws['!rows'] = [];
+
+  // Recalcular valores p/ inputs estáticos
+  const salBase = num(els.salBase);
+  const he = els.chkHorasExtras.checked ? num(els.horasExtras) : 0;
+  const dependentes = num(els.depend);
+  const bruto = salBase + he;
+  const inssSeg = calcInssSegurado(bruto);
+  const irrfObj = calcIrrf(bruto, inssSeg, dependentes);
+  const irrf = irrfObj.valor;
+  const vtTotal = els.chkVT.checked ? num(els.vtTotal) : 0;
+
+  /* ═══ TÍTULO ═══ */
+  txt('B2', 'CÁLCULO DOMÉSTICO', sTitle);
+  for (const c of ['C2','D2','E2']) setCell(c, {t:'s', v:'', s:sTitle});
+  ws['!merges'].push({s:{r:1,c:1}, e:{r:1,c:4}});
+  ws['!rows'][1] = {hpt:24};
+
+  /* ═══ 1. DADOS E SALÁRIO ═══ */
+  txt('B4', '1. DADOS E SALÁRIO', sSection);
+  for (const c of ['C4','D4','E4']) setCell(c, {t:'s', v:'', s:{border:bBot}});
+  ws['!merges'].push({s:{r:3,c:1}, e:{r:3,c:4}});
+
+  txt('B6', 'Salário Base:', sLabel);
+  numr('C6', salBase, sInput);
+  txt('D6', 'Nº Dependentes:', sLabel);
+  numr('E6', dependentes, sInputCenter, '0');
+
+  txt('B7', 'Horas Extras / Adic.:', sLabel);
+  numr('C7', he, sInput);
+  txt('D7', 'Vale-Transporte:', sLabel);
+  numr('E7', vtTotal, sInput);
+
+  txt('B9', 'REMUNERAÇÃO BRUTA TOTAL:', sDestaqueLabel);
+  fNum('C9', '=C6+C7', sDestaque);
+
+  /* ═══ 2. ALÍQUOTAS ═══ */
+  txt('B12', '2. ALÍQUOTAS DO SIMPLES DOMÉSTICO', sSection);
+  for (const c of ['C12','D12','E12']) setCell(c, {t:'s', v:'', s:{border:bBot}});
+  ws['!merges'].push({s:{r:11,c:1}, e:{r:11,c:4}});
+
+  txt('B15', 'Encargo', sColHeader);
+  txt('C15', 'Alíquota (%)', sColHeader);
+  txt('D15', '', sColHeader);
+  txt('E15', '', sColHeader);
+  ws['!merges'].push({s:{r:14,c:3}, e:{r:14,c:4}});
+
+  txt('B16', 'INSS Patronal', sLabel);   pct('C16', num(els.aliqInssPat), sInputCenter);
+  setCell('D16',{t:'s',v:'',s:sRubLabel}); setCell('E16',{t:'s',v:'',s:sRubLabel}); ws['!merges'].push({s:{r:15,c:3},e:{r:15,c:4}});
+  txt('B17', 'GILRAT (Seguro Acidente)', sLabel); pct('C17', num(els.aliqGilrat), sInputCenter);
+  setCell('D17',{t:'s',v:'',s:sRubLabel}); setCell('E17',{t:'s',v:'',s:sRubLabel}); ws['!merges'].push({s:{r:16,c:3},e:{r:16,c:4}});
+  txt('B18', 'FGTS Mensal', sLabel);      pct('C18', num(els.aliqFgts), sInputCenter);
+  setCell('D18',{t:'s',v:'',s:sRubLabel}); setCell('E18',{t:'s',v:'',s:sRubLabel}); ws['!merges'].push({s:{r:17,c:3},e:{r:17,c:4}});
+  txt('B19', 'Antecipação Multa FGTS', sLabel); pct('C19', num(els.aliqMulta), sInputCenter);
+  setCell('D19',{t:'s',v:'',s:sRubLabel}); setCell('E19',{t:'s',v:'',s:sRubLabel}); ws['!merges'].push({s:{r:18,c:3},e:{r:18,c:4}});
+
+  /* ═══ 3. DEMONSTRATIVO ═══ */
+  txt('B21', '3. DEMONSTRATIVO DETALHADO', sSection);
+  for (const c of ['C21','D21','E21']) setCell(c, {t:'s', v:'', s:{border:bBot}});
+  ws['!merges'].push({s:{r:20,c:1}, e:{r:20,c:4}});
+
+  txt('B23', '', sColHeader);
+  txt('C23', 'Base de Cálculo', sColHeader);
+  txt('D23', 'Alíquota', sColHeader);
+  txt('E23', 'Valor (R$)', sColHeader);
+
+  // A — Retenções
+  txt('B24', 'A - RETENÇÕES (COMPÕE O DAE)', sGroup);
+  for (const c of ['C24','D24','E24']) setCell(c,{t:'s',v:'',s:sGroup});
+  ws['!merges'].push({s:{r:23,c:1}, e:{r:23,c:4}});
+
+  txt('B25', 'INSS Segurado', sRubLabel);
+  fNum('C25', '=C9', sRubBase);
+  fPct('D25', bruto>0 ? `=${inssSeg}/C9` : '=0', sRubAliq);
+  numr('E25', inssSeg, sRubBase);  // valor calculado (INSS progressivo não é fórmula simples)
+
+  txt('B26', 'IRRF Segurado', sRubLabel);
+  fNum('C26', '=C9-E25', sRubBase);
+  fPct('D26', irrfObj.baseUsada>0 ? `=${irrf}/(C9-E25)` : '=0', sRubAliq);
+  numr('E26', irrf, sRubBase);
+
+  txt('B27', 'TOTAL RETENÇÕES (A)', sSubtotalLabel);
+  setCell('C27',{t:'s',v:'',s:sSubtotalLabel}); setCell('D27',{t:'s',v:'',s:sSubtotalLabel});
+  fNum('E27', '=E25+E26', sSubtotal);
+  ws['!merges'].push({s:{r:26,c:1}, e:{r:26,c:3}});
+
+  // B — Encargos Patronais
+  txt('B28', 'B - ENCARGOS PATRONAIS', sGroup);
+  for (const c of ['C28','D28','E28']) setCell(c,{t:'s',v:'',s:sGroup});
+  ws['!merges'].push({s:{r:27,c:1}, e:{r:27,c:4}});
+
+  txt('B29', 'INSS Patronal', sRubLabel);
+  fNum('C29','=C9',sRubBase); fPct('D29','=C16',sRubAliq); fNum('E29','=C29*D29',sRubBase);
+  txt('B30', 'GILRAT', sRubLabel);
+  fNum('C30','=C9',sRubBase); fPct('D30','=C17',sRubAliq); fNum('E30','=C30*D30',sRubBase);
+  txt('B31', 'FGTS', sRubLabel);
+  fNum('C31','=C9',sRubBase); fPct('D31','=C18',sRubAliq); fNum('E31','=C31*D31',sRubBase);
+  txt('B32', 'Multa FGTS (Reserva)', sRubLabel);
+  fNum('C32','=C9',sRubBase); fPct('D32','=C19',sRubAliq); fNum('E32','=C32*D32',sRubBase);
+
+  txt('B33', 'TOTAL ENCARGOS PATRONAIS (B)', sSubtotalLabel);
+  setCell('C33',{t:'s',v:'',s:sSubtotalLabel}); setCell('D33',{t:'s',v:'',s:sSubtotalLabel});
+  fNum('E33', '=SUM(E29:E32)', sSubtotal);
+  ws['!merges'].push({s:{r:32,c:1}, e:{r:32,c:3}});
+
+  // Total DAE
+  txt('B34', 'TOTAL GUIA DAE (A + B)', sDAELabel);
+  setCell('C34',{t:'s',v:'',s:sDAELabel}); setCell('D34',{t:'s',v:'',s:sDAELabel});
+  fNum('E34', '=E27+E33', sDAE);
+  ws['!merges'].push({s:{r:33,c:1}, e:{r:33,c:3}});
+
+  // C — Provisões
+  txt('B36', 'C - PROVISÕES', sGroup);
+  for (const c of ['C36','D36','E36']) setCell(c,{t:'s',v:'',s:sGroup});
+  ws['!merges'].push({s:{r:35,c:1}, e:{r:35,c:4}});
+
+  txt('B37', 'Férias + 1/3', sRubLabel);
+  fNum('C37','=C9',sRubBase); fPct('D37','=(1/12)+((1/12)/3)',sRubAliq); fNum('E37','=C37*D37',sRubBase);
+  txt('B38', '13º Salário', sRubLabel);
+  fNum('C38','=C9',sRubBase); fPct('D38','=1/12',sRubAliq); fNum('E38','=C38*D38',sRubBase);
+  txt('B39', 'Encargos s/ Provisões', sRubLabel);
+  fNum('C39','=E37+E38',sRubBase); fPct('D39','=C16+C17+C18+C19',sRubAliq); fNum('E39','=C39*D39',sRubBase);
+
+  txt('B40', 'TOTAL PROVISÕES (C)', sSubtotalLabel);
+  setCell('C40',{t:'s',v:'',s:sSubtotalLabel}); setCell('D40',{t:'s',v:'',s:sSubtotalLabel});
+  fNum('E40', '=SUM(E37:E39)', sSubtotal);
+  ws['!merges'].push({s:{r:39,c:1}, e:{r:39,c:3}});
+
+  // D — Vale-Transporte (se houver)
+  let rLiquido = 42;
+  if (vtTotal > 0) {
+    txt('B42', 'D - VALE-TRANSPORTE (CUSTO LÍQUIDO)', sGroup);
+    for (const c of ['C42','D42','E42']) setCell(c,{t:'s',v:'',s:sGroup});
+    ws['!merges'].push({s:{r:41,c:1}, e:{r:41,c:4}});
+
+    txt('B43', 'Vale-Transporte (Total)', sRubLabel);
+    numr('C43', vtTotal, sRubBase);
+    setCell('D43',{t:'s',v:'',s:sRubAliq});
+    fNum('E43','=C43',sRubBase);
+    txt('B44', '   (−) Desconto do Empregado (até 6%)', {font:{name:'Verdana',sz:9,italic:true,color:{rgb:'666666'}},alignment:{horizontal:'left',vertical:'center'},border:{right:bThin}});
+    setCell('C44',{t:'s',v:'',s:sRubBase});
+    setCell('D44',{t:'s',v:'',s:sRubAliq});
+    fNum('E44','=-MIN(C43,C6*0.06)',sRubBase);
+    txt('B45', 'TOTAL VALE-TRANSPORTE (D)', sSubtotalLabel);
+    setCell('C45',{t:'s',v:'',s:sSubtotalLabel}); setCell('D45',{t:'s',v:'',s:sSubtotalLabel});
+    fNum('E45','=E43+E44',sSubtotal);
+    ws['!merges'].push({s:{r:44,c:1}, e:{r:44,c:3}});
+    rLiquido = 47;
+  }
+
+  // Totais finais
+  const rL = rLiquido;
+  const rCusto = rLiquido + 1;
+  const rCustoProv = rLiquido + 2;
+
+  txt(`B${rL}`, 'SALÁRIO LÍQUIDO (EMPREGADO):', sLiquidoLabel);
+  setCell(`C${rL}`,{t:'s',v:'',s:sLiquidoLabel}); setCell(`D${rL}`,{t:'s',v:'',s:sLiquidoLabel});
+  fNum(`E${rL}`, '=C9-E25-E26', sLiquido);
+  ws['!merges'].push({s:{r:rL-1,c:1}, e:{r:rL-1,c:3}});
+  ws['!rows'][rL-1] = {hpt:22};
+
+  const vtRef = vtTotal > 0 ? '+E45' : '';
+  txt(`B${rCusto}`, 'CUSTO TOTAL MENSAL (LÍQUIDO + DAE):', sFinalLabel);
+  setCell(`C${rCusto}`,{t:'s',v:'',s:sFinalLabel}); setCell(`D${rCusto}`,{t:'s',v:'',s:sFinalLabel});
+  fNum(`E${rCusto}`, `=E${rL}+E34${vtRef}`, sFinal);
+  ws['!merges'].push({s:{r:rCusto-1,c:1}, e:{r:rCusto-1,c:3}});
+  ws['!rows'][rCusto-1] = {hpt:24};
+
+  txt(`B${rCustoProv}`, 'CUSTO TOTAL + PROVISÕES:', sFinalLabel);
+  setCell(`C${rCustoProv}`,{t:'s',v:'',s:sFinalLabel}); setCell(`D${rCustoProv}`,{t:'s',v:'',s:sFinalLabel});
+  fNum(`E${rCustoProv}`, `=E${rCusto}+E40`, sFinal);
+  ws['!merges'].push({s:{r:rCustoProv-1,c:1}, e:{r:rCustoProv-1,c:3}});
+  ws['!rows'][rCustoProv-1] = {hpt:24};
+
+  ws['!ref'] = `A1:F${rCustoProv + 2}`;
+
+  XLSX.utils.book_append_sheet(wb, ws, 'Custo Doméstico');
+
+  const data = new Date();
+  const dataStr = data.toLocaleDateString('pt-BR').replace(/\//g,'-');
+  const nomeArquivo = `Custo_Domestico_${dataStr}.xlsx`;
+
+  try {
+    const buf = XLSX.write(wb, {bookType:'xlsx', type:'array'});
+    const u8 = new Uint8Array(buf);
+    const files = fflate.unzipSync(u8);
+    const dec = new TextDecoder();
+    const enc = new TextEncoder();
+    for (const fname of Object.keys(files)) {
+      if (/xl\/worksheets\/sheet\d+\.xml$/.test(fname)) {
+        let xml = dec.decode(files[fname]);
+        xml = xml.replace(/<sheetView ([^>]*?)\/>/g, (m, attrs) =>
+          m.includes('showGridLines') ? m : `<sheetView showGridLines="0" ${attrs}/>`);
+        xml = xml.replace(/<sheetView ([^>]*?)>/g, (m, attrs) =>
+          (m.includes('showGridLines') || m.endsWith('/>')) ? m : `<sheetView showGridLines="0" ${attrs}>`);
+        files[fname] = enc.encode(xml);
+      }
+    }
+    const out = fflate.zipSync(files);
+    const blob = new Blob([out], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = nomeArquivo;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch (e) {
+    console.error('Patch de gridlines falhou:', e);
+    XLSX.writeFile(wb, nomeArquivo);
+  }
+}
+
+/* ─── Listeners ─── */
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('input, select').forEach(el => {
+    el.addEventListener('input', calcular);
+    el.addEventListener('change', calcular);
+  });
+  els.chkHorasExtras.addEventListener('change', () => { toggleHE(); calcular(); });
+  els.chkVT.addEventListener('change', () => { toggleVT(); calcular(); });
+  document.getElementById('btnExport').addEventListener('click', exportarExcel);
+  document.getElementById('btnLimpar').addEventListener('click', limpar);
+  toggleHE();
+  toggleVT();
+  calcular();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Conciliador de Crédito do Trabalhador: Planilha x Sistema</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fflate@0.8.2/umd/index.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-page:#f4f5f7; --card-bg:#ffffff; --card-border:#e5e7eb;
+    --ink:#0f172a; --ink-soft:#334155; --ink-muted:#6b7280;
+    --header-bg:#1f2937; --header-text:#ffffff;
+    --row-border:#f1f5f9; --row-strong:#e5e7eb;
+    --input-border:#d1d5db; --input-bg:#fff;
+    --green:#16a34a; --green-bright:#22c55e; --green-hover:#15803d;
+    --red:#dc2626; --red-hover:#b91c1c;
+    --orange:#ea580c; --orange-hover:#c2410c;
+    --blue:#2563eb; --blue-hover:#1d4ed8;
+    --yellow:#f59e0b;
+    --shadow:0 1px 2px rgba(0,0,0,.04), 0 4px 24px -8px rgba(0,0,0,.06);
+  }
+
+  html, body {
+    background: var(--bg-page);
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: var(--ink); min-height: 100vh;
+    -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+  }
+  .page { padding: 32px 16px 64px; display: flex; justify-content: center; }
+  .card {
+    width: 100%; max-width: 1380px; background: var(--card-bg);
+    border: 1px solid var(--card-border); border-radius: 14px;
+    box-shadow: var(--shadow); padding: 36px 40px 40px;
+  }
+  h1.title {
+    font-weight: 700; font-size: 28px; letter-spacing: -0.01em;
+    text-align: center; color: var(--ink); margin-bottom: 8px;
+  }
+  p.subtitle {
+    text-align: center; color: var(--ink-muted);
+    font-size: 13px; margin-bottom: 28px; font-weight: 400;
+  }
+
+  .top-actions { margin-bottom: 22px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    border: none; font-family: inherit; font-weight: 600; font-size: 14px;
+    padding: 10px 18px; border-radius: 8px; cursor: pointer;
+    transition: background .15s, transform .1s; color: #fff;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .btn svg { width: 16px; height: 16px; }
+  .btn-excel { background: var(--green-bright); }
+  .btn-excel:hover:not(:disabled) { background: var(--green); }
+  .btn-limpar { background: var(--red); }
+  .btn-limpar:hover { background: var(--red-hover); }
+
+  .section {
+    border: 1px solid var(--card-border); border-radius: 10px;
+    overflow: hidden; margin-bottom: 22px; background: #fff;
+  }
+  .section-header {
+    background: var(--header-bg); color: var(--header-text);
+    font-weight: 700; font-size: 14px; padding: 14px 18px;
+    letter-spacing: .01em; display: flex; align-items: center; gap: 10px;
+  }
+  .section-header .badge {
+    background: rgba(255,255,255,.18);
+    width: 22px; height: 22px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700;
+  }
+  .section-body { padding: 20px 22px; }
+
+  /* upload area */
+  .upload-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+  .uploader {
+    border: 2px dashed var(--card-border); border-radius: 10px;
+    padding: 22px 18px; text-align: center;
+    transition: border-color .15s, background .15s;
+    background: #fafafa; cursor: pointer; position: relative;
+  }
+  .uploader:hover { border-color: var(--blue); background: #f0f7ff; }
+  .uploader.has-file { border-color: var(--green-bright); background: #ecfdf5; border-style: solid; }
+  .uploader.drag-over { border-color: var(--blue); background: #dbeafe; }
+  .uploader .icon {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: rgba(37,99,235,.1); color: var(--blue);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 10px;
+  }
+  .uploader.has-file .icon { background: rgba(22,163,74,.12); color: var(--green-hover); }
+  .uploader .icon svg { width: 22px; height: 22px; }
+  .uploader .title-up {
+    font-size: 14px; font-weight: 700; color: var(--ink); margin-bottom: 4px;
+  }
+  .uploader .hint {
+    font-size: 12px; color: var(--ink-muted); line-height: 1.4;
+  }
+  .uploader input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer;
+  }
+  .file-info {
+    margin-top: 10px; font-size: 12px; color: var(--green-hover);
+    font-weight: 600; word-break: break-all;
+  }
+  .file-info .clear-btn {
+    background: transparent; border: 1px solid var(--red); color: var(--red);
+    padding: 3px 10px; border-radius: 5px; cursor: pointer;
+    font-size: 11px; font-weight: 600; margin-left: 8px;
+    font-family: inherit;
+  }
+  .file-info .clear-btn:hover { background: var(--red); color: #fff; }
+
+  /* instruções */
+  .instrucoes {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-size: 12.5px;
+    color: #1e3a8a;
+    line-height: 1.6;
+    margin-bottom: 18px;
+  }
+  .instrucoes strong { font-weight: 700; }
+  .instrucoes ol { margin: 6px 0 0 20px; }
+  .instrucoes li { margin-bottom: 3px; }
+  .instrucoes code {
+    background: rgba(30,58,138,.08); padding: 1px 6px; border-radius: 4px;
+    font-family: 'Courier New', monospace; font-size: 12px;
+  }
+
+  /* status */
+  .status {
+    padding: 10px 14px; border-radius: 8px;
+    font-size: 13px; font-weight: 500; margin-bottom: 14px;
+    display: none;
+  }
+  .status.show { display: block; }
+  .status.info    { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
+  .status.error   { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+  .status.success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+  .status.warn    { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
+
+  /* tabela */
+  .table-wrap {
+    border-radius: 10px; overflow: auto;
+    border: 1px solid var(--card-border); margin-top: 8px;
+    max-width: 100%;
+  }
+  table.recon {
+    width: 100%; border-collapse: collapse; background: #fff;
+    font-size: 12.5px; font-variant-numeric: tabular-nums;
+  }
+  table.recon thead th {
+    background: var(--header-bg); color: #fff;
+    font-weight: 700; font-size: 11px; padding: 11px 8px;
+    text-align: left; letter-spacing: .02em; line-height: 1.25;
+    position: sticky; top: 0; z-index: 1;
+    text-transform: uppercase;
+  }
+  table.recon tbody td {
+    padding: 9px 8px; border-bottom: 1px solid var(--row-border);
+    vertical-align: middle; background: #fff;
+  }
+  table.recon tbody td.right { text-align: right; font-weight: 600; }
+  table.recon tbody td.center { text-align: center; }
+  table.recon tbody tr.status-ok td { background: #f0fdf4; }
+  table.recon tbody tr.status-parcial td { background: #fffbeb; }
+  table.recon tbody tr.status-naodesc td { background: #fef2f2; }
+
+  .badge-status {
+    display: inline-block; padding: 3px 9px; border-radius: 12px;
+    font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .03em; white-space: nowrap;
+  }
+  .badge-ok      { background: #bbf7d0; color: #166534; }
+  .badge-parcial { background: #fde68a; color: #92400e; }
+  .badge-naodesc { background: #fecaca; color: #991b1b; }
+
+  .obs-cell { font-size: 11.5px; line-height: 1.4; }
+
+  /* resumo */
+  .resumo {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 12px; margin-top: 18px;
+  }
+  .resumo-card {
+    background: #f9fafb; border: 1px solid var(--card-border);
+    border-radius: 8px; padding: 14px;
+  }
+  .resumo-card .lbl {
+    font-size: 11px; font-weight: 600; color: var(--ink-muted);
+    text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px;
+  }
+  .resumo-card .val {
+    font-size: 18px; font-weight: 700; color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .resumo-card.ok .val { color: var(--green); }
+  .resumo-card.parcial .val { color: var(--yellow); }
+  .resumo-card.naodesc .val { color: var(--red); }
+  .resumo-card.demitido .val { color: #6b21a8; }
+  .resumo-card.afastado .val { color: #0f766e; }
+  .resumo-card.outro .val { color: #475569; }
+  .resumo-card.total .val { color: var(--blue); font-size: 22px; }
+
+  /* select e input editáveis na tabela */
+  table.recon tbody td select.status-sel,
+  table.recon tbody td input.valor-input {
+    width: 100%; padding: 5px 8px; font-size: 12px;
+    border: 1px solid var(--input-border); border-radius: 5px;
+    background: rgba(255,255,255,.85); font-family: inherit; font-weight: 600;
+    color: var(--ink); cursor: pointer;
+    font-variant-numeric: tabular-nums;
+  }
+  table.recon tbody td select.status-sel:focus,
+  table.recon tbody td input.valor-input:focus {
+    outline: none; border-color: var(--blue);
+    box-shadow: 0 0 0 2px rgba(37,99,235,.18);
+    background: #fff;
+  }
+  table.recon tbody td input.valor-input { text-align: right; }
+  table.recon tbody td select.status-sel.s-ok      { color: #166534; border-color: #86efac; background:#f0fdf4; }
+  table.recon tbody td select.status-sel.s-parcial { color: #92400e; border-color: #fcd34d; background:#fffbeb; }
+  table.recon tbody td select.status-sel.s-naodesc { color: #991b1b; border-color: #fca5a5; background:#fef2f2; }
+  table.recon tbody td select.status-sel.s-demitido{ color: #6b21a8; border-color: #c4b5fd; background:#faf5ff; }
+  table.recon tbody td select.status-sel.s-afastado{ color: #0f766e; border-color: #5eead4; background:#f0fdfa; }
+  table.recon tbody td select.status-sel.s-outro   { color: #475569; border-color: #cbd5e1; background:#f8fafc; }
+
+  table.recon tbody tr.status-demitido td { background: #faf5ff; }
+  table.recon tbody tr.status-afastado td { background: #f0fdfa; }
+  table.recon tbody tr.status-outro    td { background: #f8fafc; }
+
+  /* totalizadores */
+  .totalizadores {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 18px;
+  }
+  .tot-card {
+    border-radius: 10px;
+    padding: 16px 18px;
+    border: 1px solid;
+  }
+  .tot-card .tot-lbl {
+    font-size: 12px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .04em;
+    margin-bottom: 6px;
+  }
+  .tot-card .tot-val {
+    font-size: 22px; font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    margin-bottom: 4px;
+  }
+  .tot-card .tot-desc {
+    font-size: 11px; opacity: .8; line-height: 1.4;
+  }
+  .tot-planilha {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: #1e3a8a;
+  }
+  .tot-movs {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+    color: #14532d;
+  }
+  .tot-dif {
+    background: #fef3c7;
+    border-color: #fde68a;
+    color: #78350f;
+  }
+  .tot-dif.zerada {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+    color: #14532d;
+  }
+  .tot-dif.negativa {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #991b1b;
+  }
+  .tot-descontado {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+    color: #14532d;
+  }
+  .tot-parciais {
+    background: #fffbeb;
+    border-color: #fde68a;
+    color: #92400e;
+  }
+
+  .fgts-banner {
+    margin-top: 20px;
+    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+    color: #fff; padding: 20px 24px; border-radius: 12px;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 16px;
+  }
+  .fgts-banner .lbl {
+    font-size: 12px; text-transform: uppercase; letter-spacing: .08em;
+    opacity: .85; margin-bottom: 4px;
+  }
+  .fgts-banner .val {
+    font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums;
+  }
+  .fgts-banner .desc {
+    font-size: 12.5px; opacity: .85; max-width: 480px; line-height: 1.5;
+  }
+
+  @media (max-width: 900px) {
+    .card { padding: 22px 14px; }
+    h1.title { font-size: 22px; }
+    .section-body { padding: 16px 12px; }
+    .upload-grid { grid-template-columns: 1fr; }
+    .totalizadores { grid-template-columns: 1fr; }
+    .table-wrap { overflow-x: auto; }
+    table.recon { min-width: 900px; }
+  }
+</style>
+</head>
+<body><nav id="dp-panel-nav" style="position:fixed;top:0;left:0;right:0;z-index:99999;height:44px;background:#1f2937;display:flex;align-items:center;padding:0 20px;box-shadow:0 1px 4px rgba(0,0,0,.2);font-family:'Poppins',-apple-system,sans-serif;"><a href="/" style="color:#fff;text-decoration:none;font-weight:600;font-size:13px;display:inline-flex;align-items:center;gap:8px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>Painel DP</a><span style="margin-left:auto;color:rgba(255,255,255,.45);font-size:11px;font-weight:500;letter-spacing:.04em;">AUTOMAÇÕES DP</span></nav><div style="height:44px;"></div>
+
+<div class="page">
+  <div class="card">
+
+    <h1 class="title">Conciliador de Crédito do Trabalhador: Planilha x Sistema</h1>
+    <p class="subtitle">Conciliação entre a planilha de Crédito do Trabalhador e os Movimentos da Folha</p>
+
+    <div class="top-actions">
+      <button class="btn btn-excel" id="btnExcel" disabled title="Gera planilha conciliada (anexe os dois arquivos primeiro)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Planilha Conciliada
+      </button>
+      <button class="btn btn-limpar" id="btnLimpar" title="Limpa os arquivos anexados e o resultado">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+        </svg>
+        Limpar Tudo
+      </button>
+    </div>
+
+    <!-- ━━━━━━━━ 1. INSTRUÇÕES ━━━━━━━━ -->
+    <section class="section">
+      <div class="section-header">
+        <span class="badge">1</span>
+        Como obter os arquivos
+      </div>
+      <div class="section-body">
+        <div class="instrucoes">
+          <strong>Planilha de Crédito do Trabalhador (.xlsx):</strong>
+          é o arquivo de Crédito do Trabalhador exportado do sistema, no layout fixo do eSocial v1.4 — começa com as colunas <code>ifConcessora.codigo</code>, <code>contrato</code>, <code>cpf</code>, <code>valorParcela</code>...
+        </div>
+        <div class="instrucoes">
+          <strong>Relatório de Movimentos (.pdf):</strong> obtido no sistema da contabilidade:
+          <ol>
+            <li>Acesse <strong>Relatórios → Folha → Movimentos</strong></li>
+            <li>Em <strong>Apresentação</strong>, marque <code>Por Empregado</code></li>
+            <li>Clique em <strong>Rubricas</strong> e marque as <code>Classificação 49 e 50</code> (descontos de empréstimo consignado)</li>
+            <li>Gere o PDF e anexe abaixo</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- ━━━━━━━━ 2. UPLOAD ━━━━━━━━ -->
+    <section class="section">
+      <div class="section-header">
+        <span class="badge">2</span>
+        Anexar Arquivos
+      </div>
+      <div class="section-body">
+        <div class="upload-grid">
+
+          <div>
+            <div class="uploader" id="upPlanilha">
+              <div class="icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="8" y1="13" x2="16" y2="13"/>
+                  <line x1="8" y1="17" x2="16" y2="17"/>
+                  <line x1="8" y1="9" x2="10" y2="9"/>
+                </svg>
+              </div>
+              <div class="title-up">Planilha eSocial (.xlsx)</div>
+              <div class="hint">Crédito do Trabalhador<br>Arraste ou clique para selecionar</div>
+              <input type="file" id="filePlanilha" accept=".xlsx,.xls">
+            </div>
+            <div class="file-info" id="infoPlanilha" style="display:none;"></div>
+          </div>
+
+          <div>
+            <div class="uploader" id="upMovimentos">
+              <div class="icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="16" y1="13" x2="8" y2="13"/>
+                  <line x1="16" y1="17" x2="8" y2="17"/>
+                  <polyline points="10 9 9 9 8 9"/>
+                </svg>
+              </div>
+              <div class="title-up">Movimentos (.pdf)</div>
+              <div class="hint">Relatórios → Folha → Movimentos<br>Classificação 49 e 50</div>
+              <input type="file" id="fileMovimentos" accept=".pdf">
+            </div>
+            <div class="file-info" id="infoMovimentos" style="display:none;"></div>
+          </div>
+
+        </div>
+
+        <div class="status" id="statusMsg"></div>
+      </div>
+    </section>
+
+    <!-- ━━━━━━━━ 3. CONCILIAÇÃO ━━━━━━━━ -->
+    <section class="section" id="sectionRecon" style="display:none;">
+      <div class="section-header">
+        <span class="badge">3</span>
+        Resultado da Conciliação
+      </div>
+      <div class="section-body">
+
+        <p style="font-size:12px;color:var(--ink-muted);margin-bottom:12px;">
+          <strong>Conferência manual:</strong> após a verificação automática, você pode alterar o <strong>Status</strong> de cada linha (Demitido, Afastado, Desconto Total, Parcial, etc.) e ajustar o <strong>valor descontado</strong>. Os totalizadores e o valor da guia do FGTS Digital atualizam em tempo real.
+        </p>
+        <p style="font-size:12px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 12px;margin-bottom:12px;line-height:1.5;">
+          <strong>Aviso sobre número de contrato:</strong> em razão de limitação de caracteres no relatório de Movimentos, o número do contrato pode aparecer incompleto ou sem alguns caracteres. Isso <strong>não significa necessariamente divergência</strong>; a conciliação considera compatibilidade por número exato e por prefixo quando houver truncamento.
+        </p>
+
+        <div class="table-wrap">
+          <table class="recon" id="tabelaRecon">
+            <thead>
+              <tr>
+                <th style="min-width:60px;">Código</th>
+                <th style="min-width:170px;">Colaborador</th>
+                <th style="min-width:120px;">CPF</th>
+                <th style="min-width:130px;">Nº Contrato (Planilha)</th>
+                <th style="min-width:130px;">Nº Contrato (Movimentos)</th>
+                <th style="min-width:90px;">Parcela<br>(Planilha)</th>
+                <th style="min-width:110px;">Desc.<br>(Movimentos)</th>
+                <th style="min-width:150px;">Status</th>
+                <th style="min-width:240px;">Observação</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyRecon"></tbody>
+            <tfoot>
+              <tr class="totais-row">
+                <td colspan="5" style="text-align:right;padding-right:10px;font-weight:700;background:#eef0f3;">TOTAIS:</td>
+                <td class="right" style="background:#dbeafe;color:#1e3a8a;font-weight:700;font-size:13px;" id="footTotPlanilha">R$ 0,00</td>
+                <td class="right" style="background:#dcfce7;color:#15803d;font-weight:700;font-size:13px;" id="footTotMovs">R$ 0,00</td>
+                <td colspan="2" style="background:#eef0f3;"></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <div class="resumo">
+          <div class="resumo-card ok">
+            <div class="lbl">Desconto Total</div>
+            <div class="val" id="resOk">0</div>
+          </div>
+          <div class="resumo-card parcial">
+            <div class="lbl">Desconto Parcial</div>
+            <div class="val" id="resParcial">0</div>
+          </div>
+          <div class="resumo-card naodesc">
+            <div class="lbl">Não Descontado</div>
+            <div class="val" id="resNaoDesc">0</div>
+          </div>
+          <div class="resumo-card demitido">
+            <div class="lbl">Demitido</div>
+            <div class="val" id="resDemitido">0</div>
+          </div>
+          <div class="resumo-card afastado">
+            <div class="lbl">Afastado</div>
+            <div class="val" id="resAfastado">0</div>
+          </div>
+          <div class="resumo-card outro">
+            <div class="lbl">Outro</div>
+            <div class="val" id="resOutro">0</div>
+          </div>
+          <div class="resumo-card total">
+            <div class="lbl">Total Contratos</div>
+            <div class="val" id="resTotal">0</div>
+          </div>
+        </div>
+
+        <!-- Totalizadores principais -->
+        <div class="totalizadores">
+          <div class="tot-card tot-descontado">
+            <div class="tot-lbl">Total descontado dos empregados</div>
+            <div class="tot-val" id="totDescontadoEmpregados">R$ 0,00</div>
+            <div class="tot-desc">Soma dos valores efetivamente descontados dos empregados após as conferências manuais.</div>
+          </div>
+          <div class="tot-card tot-parciais">
+            <div class="tot-lbl">Total das diferenças não descontadas</div>
+            <div class="tot-val" id="totDescontosParciais">R$ 0,00</div>
+            <div class="tot-desc">Soma apenas das diferenças que não puderam ser descontadas: desconto parcial, não descontado, afastado, outro e demitido somente quando houver valor informado menor que a parcela.</div>
+          </div>
+        </div>
+
+        <div class="fgts-banner">
+          <div>
+            <div class="lbl">Valor a recolher na guia do FGTS Digital</div>
+            <div class="val" id="totalFgts">R$ 0,00</div>
+            <div class="desc">Soma dos valores efetivamente descontados (após suas conferências). Este é o valor que deve bater com o débito no FGTS Digital da competência.</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   Conciliador de Crédito do Trabalhador: Planilha x Sistema
+   Cruza a planilha eSocial (layout v1.4) com o relatório de
+   Movimentos da folha de pagamento (Classificação 49 e 50).
+   ═══════════════════════════════════════════════════════════ */
+
+// Configurar worker do pdf.js
+if (window['pdfjsLib']) {
+  window['pdfjsLib'].GlobalWorkerOptions.workerSrc =
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+
+const state = {
+  planilhaData: null,   // [{cpf, contrato, nome, parcela, banco, codigo/matricula}]
+  movData: null,        // {nomeUpper: [{contrato, valor}]}
+  resultado: null,      // array de linhas da conciliação
+  competencia: null,
+};
+
+const BRL = v => 'R$ ' + (Number(v) || 0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+const norm = s => String(s||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+const fmtCPF = c => {
+  const s = String(c||'').replace(/\D/g,'').padStart(11,'0');
+  return `${s.slice(0,3)}.${s.slice(3,6)}.${s.slice(6,9)}-${s.slice(9,11)}`;
+};
+
+function setStatus(msg, tipo='info') {
+  const el = document.getElementById('statusMsg');
+  el.textContent = msg;
+  el.className = 'status show ' + tipo;
+}
+function clearStatus() {
+  document.getElementById('statusMsg').className = 'status';
+}
+
+/* ─── Leitura da planilha XLSX ─── */
+async function lerPlanilha(file) {
+  const buf = await file.arrayBuffer();
+  const wb = XLSX.read(buf, {type:'array'});
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+  if (rows.length < 2) throw new Error('Planilha vazia.');
+
+  // Cabeçalho — encontrar índices das colunas pelos nomes
+  const header = rows[0].map(s => String(s).trim());
+  const idx = {
+    bancoCod:   header.indexOf('ifConcessora.codigo'),
+    banco:      header.indexOf('ifConcessora.descricao'),
+    contrato:   header.indexOf('contrato'),
+    cpf:        header.indexOf('cpf'),
+    matricula:  header.indexOf('matricula'),
+    nome:       header.indexOf('nomeTrabalhador'),
+    totalParc:  header.indexOf('totalParcelas'),
+    parcela:    header.indexOf('valorParcela'),
+    competencia:header.indexOf('competencia'),
+  };
+  if (idx.contrato < 0 || idx.cpf < 0 || idx.nome < 0 || idx.parcela < 0) {
+    throw new Error('Planilha não está no layout esperado do eSocial (faltam colunas contrato/cpf/nomeTrabalhador/valorParcela).');
+  }
+
+  const data = [];
+  let competencia = null;
+  for (let i = 1; i < rows.length; i++) {
+    const r = rows[i];
+    if (!r || r.every(c => c === '' || c == null)) continue;
+    const item = {
+      bancoCod:   String(r[idx.bancoCod] || '').trim(),
+      banco:      String(r[idx.banco]    || '').trim(),
+      contrato:   String(r[idx.contrato] || '').trim(),
+      cpf:        String(r[idx.cpf]      || '').replace(/\D/g,''),
+      matricula:  String(r[idx.matricula]|| '').trim(),
+      nome:       String(r[idx.nome]     || '').trim(),
+      totalParc:  Number(r[idx.totalParc]) || 0,
+      parcela:    Number(r[idx.parcela])   || 0,
+      competencia:String(r[idx.competencia]|| '').trim(),
+    };
+    if (item.contrato && item.cpf && item.nome) {
+      data.push(item);
+      if (!competencia && item.competencia) competencia = item.competencia;
+    }
+  }
+  state.competencia = competencia;
+  return data;
+}
+
+/* ─── Leitura do PDF de Movimentos ─── */
+async function lerMovimentos(file) {
+  const buf = await file.arrayBuffer();
+  const pdf = await window['pdfjsLib'].getDocument({data: buf}).promise;
+  let textoCompleto = '';
+  for (let p = 1; p <= pdf.numPages; p++) {
+    const page = await pdf.getPage(p);
+    const content = await page.getTextContent();
+    // Agrupar por linha usando posição Y
+    const items = content.items;
+    // Ordenar por Y desc, depois X asc
+    const linhas = {};
+    for (const it of items) {
+      const y = Math.round(it.transform[5]);
+      if (!linhas[y]) linhas[y] = [];
+      linhas[y].push({x: it.transform[4], text: it.str});
+    }
+    const ys = Object.keys(linhas).map(Number).sort((a,b)=>b-a);
+    for (const y of ys) {
+      const linha = linhas[y].sort((a,b)=>a.x-b.x).map(t=>t.text).join(' ').replace(/\s+/g,' ').trim();
+      if (linha) textoCompleto += linha + '\n';
+    }
+  }
+  return parseMovimentos(textoCompleto);
+}
+
+/* Parser do texto extraído */
+function parseMovimentos(texto) {
+  const movs = {};   // { nomeUpper: [{contrato, valor}] }
+  const lines = texto.split('\n');
+  let empNome = null;
+  let empCode = null;
+
+  // Padrão de empregado: "1128 - ANDERSON CHINSKI"
+  const reEmp = /^(\d{1,5})\s*-\s*([A-ZÁÉÍÓÚÇÃÕÂÊÔÀÜ][A-ZÁÉÍÓÚÇÃÕÂÊÔÀÜ \-']{2,})$/;
+  // Padrão de desconto: "1000 DESC. EMP. CRED. TRAB 2 Nº 2025112731321 05/2026 118,05 118,05 D Automático"
+  // Captura: número do contrato e valor
+  const reDesc = /DESC\.?\s*EMP\.?\s*CRED\.?\s*TRAB(?:\s+FE|(?:\s+\d+)?)(?:\s+FE)?\s+N[º°o]?\s+(\S+)\s+\d{2}\/\d{4}\s+([\d.,]+)/i;
+
+  for (const lineRaw of lines) {
+    const line = lineRaw.trim();
+    if (!line) continue;
+
+    // Pular linhas de cabeçalho/rodapé
+    if (/^(Empresa|CNPJ|Competência|Página|Emissão|Horas|MOVIMENTOS|Código Nome|Empregados|Sistema licenciado|Total da empresa)/i.test(line)) continue;
+
+    // Total do Empregado: 589,73 589,73  → fim de bloco do empregado
+    if (/^Total do Empregado:/i.test(line)) {
+      empNome = null; empCode = null;
+      continue;
+    }
+
+    // Linha de empregado
+    const me = line.match(reEmp);
+    if (me && !/DESC/i.test(line)) {
+      empCode = me[1];
+      empNome = me[2].trim();
+      if (!movs[norm(empNome)]) movs[norm(empNome)] = { code: empCode, nome: empNome, items: [] };
+      continue;
+    }
+
+    // Linha de desconto
+    const md = line.match(reDesc);
+    if (md && empNome) {
+      const contrato = md[1];
+      const valor = Number(md[2].replace(/\./g,'').replace(',','.')) || 0;
+      const tipo = /CRED\.?\s*TRAB\s*FE/i.test(line) ? 'FE' : 'NORMAL';
+      movs[norm(empNome)].items.push({ contrato, valor, tipo });
+    }
+  }
+  return movs;
+}
+
+/* ─── Conciliação ─── */
+function conciliar() {
+  if (!state.planilhaData || !state.movData) return;
+
+  const movs = state.movData;
+  const usedMovs = new Set();
+
+  const matchContrato = (cPlanilha, cMov) => {
+    const a = String(cPlanilha).trim();
+    const b = String(cMov).trim();
+    if (a === b) return 'exato';
+    if (a.length >= 8 && b.length >= 8) {
+      if (a.startsWith(b) || b.startsWith(a)) return 'prefixo';
+    }
+    return null;
+  };
+
+  const linhas = [];
+
+  for (const item of state.planilhaData) {
+    const nomeUp = norm(item.nome);
+    const empData = movs[nomeUp];
+    let contratoMov = '';
+    let valorMov = 0;
+    let movItem = null;
+    let movItems = [];
+    let codigo = (empData && empData.code) ? empData.code : (item.matricula || '');
+
+    if (empData) {
+      const coletarCompativeis = (tipoMatch) => {
+        const encontrados = [];
+        for (let i = 0; i < empData.items.length; i++) {
+          const key = `${nomeUp}|${i}`;
+          if (usedMovs.has(key)) continue;
+          if (matchContrato(item.contrato, empData.items[i].contrato) === tipoMatch) {
+            encontrados.push({ index: i, key, item: empData.items[i] });
+          }
+        }
+        return encontrados;
+      };
+
+      let encontrados = coletarCompativeis('exato');
+      if (!encontrados.length) encontrados = coletarCompativeis('prefixo');
+
+      if (encontrados.length) {
+        movItems = encontrados.map(e => e.item);
+        encontrados.forEach(e => usedMovs.add(e.key));
+        movItem = movItems[0];
+      }
+    }
+
+    if (movItems.length) {
+      contratoMov = [...new Set(movItems.map(m => m.contrato))].join(' + ');
+      valorMov = movItems.reduce((acc, m) => acc + (Number(m.valor) || 0), 0);
+    }
+
+    // Status automático (depois pode ser alterado pelo usuário)
+    let status, obs;
+    const tolerancia = 0.01;
+    if (!movItem) {
+      status = 'naodesc';
+      if (!empData) {
+        obs = 'Colaborador NÃO encontrado nos Movimentos. Verificar se: (a) foi demitido na competência; ou (b) é necessário enviar relatório de não desconto da parcela ao empregado.';
+      } else {
+        obs = 'Contrato não localizado nos Movimentos (colaborador tem outros descontos). Verificar se: (a) foi quitado/demitido; ou (b) enviar relatório de não desconto da parcela ao empregado.';
+      }
+    } else if (Math.abs(valorMov - item.parcela) <= tolerancia) {
+      status = 'ok';
+      obs = movItems.length > 1 ? 'Desconto integral conforme valor da parcela. Foram somadas rubricas de Crédito do Trabalhador normal e/ou FE com o mesmo contrato.' : 'Desconto integral conforme valor da parcela.';
+    } else if (valorMov < item.parcela) {
+      const dif = item.parcela - valorMov;
+      status = 'parcial';
+      obs = `Desconto PARCIAL — diferença de ${BRL(dif)}. Enviar aviso de desconto parcial ao empregado.`;
+    } else {
+      const dif = valorMov - item.parcela;
+      status = 'parcial';
+      obs = `Valor descontado MAIOR que a parcela (+${BRL(dif)}). Verificar se há acréscimo legal/multa.`;
+    }
+
+    linhas.push({
+      codigo,
+      nome: item.nome,
+      cpf: item.cpf,
+      contratoPlan: item.contrato,
+      contratoMov,
+      parcela: item.parcela,
+      valorMov,
+      status,
+      statusAuto: status,   // guarda o status original do automático
+      obs,
+      obsAuto: obs,         // observação original
+      banco: item.banco,
+      editadoManualmente: false,
+    });
+  }
+
+  // Ordenar por nome
+  linhas.sort((a,b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+
+  state.resultado = { linhas };
+
+  renderResultado();
+}
+
+/* Recalcula observação automática baseada no status atual e nos valores */
+function obsParaStatus(linha) {
+  const tol = 0.01;
+  switch (linha.status) {
+    case 'ok':
+      return 'Desconto integral conforme valor da parcela.';
+    case 'parcial': {
+      const dif = linha.parcela - linha.valorMov;
+      if (Math.abs(dif) <= tol) return 'Desconto integral conforme valor da parcela.';
+      if (dif > 0) return `Desconto PARCIAL — diferença de ${BRL(dif)}. Enviar aviso de desconto parcial ao empregado.`;
+      return `Valor descontado MAIOR que a parcela (+${BRL(-dif)}). Verificar se há acréscimo legal/multa.`;
+    }
+    case 'naodesc':
+      return 'NÃO descontado da folha. Enviar comunicado de não desconto da parcela ao empregado e verificar a causa.';
+    case 'demitido':
+      return 'Colaborador DEMITIDO. Se foi demitido na competência e teve Crédito do Trabalhador descontado, informe o valor descontado para compor a guia do FGTS Digital. Se o valor já foi antecipado na rescisão/guia rescisória, mantenha zerado para não duplicar no fechamento mensal.';
+    case 'afastado':
+      return 'Colaborador AFASTADO. Manter valor zerado quando não houver desconto e enviar comunicado de não desconto da parcela ao empregado.';
+    case 'outro':
+      return 'Verificar manualmente — situação especial que não se enquadra nas classificações anteriores.';
+    default:
+      return '';
+  }
+}
+
+/* ─── Render ─── */
+function renderResultado() {
+  if (!state.resultado) return;
+  const tbody = document.getElementById('tbodyRecon');
+  tbody.innerHTML = '';
+
+  const opcoesStatus = [
+    {k:'ok',       label:'Desconto Total'},
+    {k:'parcial',  label:'Desconto Parcial'},
+    {k:'naodesc',  label:'Não Descontado'},
+    {k:'demitido', label:'Demitido'},
+    {k:'afastado', label:'Afastado'},
+    {k:'outro',    label:'Outro'},
+  ];
+
+  state.resultado.linhas.forEach((l, idx) => {
+    const tr = document.createElement('tr');
+    tr.className = 'status-' + l.status;
+    tr.dataset.idx = idx;
+
+    // Cor do valor descontado conforme o status
+    const corValor = (l.status === 'naodesc' || l.status === 'afastado') ? 'var(--red)'
+                   : (l.status === 'parcial' || l.status === 'outro' || l.status === 'demitido') ? 'var(--orange)'
+                   : 'var(--green)';
+
+    const selectHTML = `<select class="status-sel s-${l.status}" data-idx="${idx}">${
+      opcoesStatus.map(o => `<option value="${o.k}"${o.k===l.status?' selected':''}>${o.label}</option>`).join('')
+    }</select>`;
+
+    const inputValHTML = `<input type="number" class="valor-input" data-idx="${idx}" step="0.01" min="0" value="${l.valorMov.toFixed(2)}" style="color:${corValor};">`;
+
+    tr.innerHTML = `
+      <td class="center">${l.codigo || '—'}</td>
+      <td><strong>${l.nome}</strong>${l.banco ? `<br><span style="font-size:10.5px;color:var(--ink-muted);">${l.banco}</span>` : ''}</td>
+      <td>${fmtCPF(l.cpf)}</td>
+      <td>${l.contratoPlan}</td>
+      <td>${l.contratoMov || '<span style="color:var(--red);">—</span>'}</td>
+      <td class="right">${BRL(l.parcela)}</td>
+      <td class="right">${inputValHTML}</td>
+      <td class="center">${selectHTML}</td>
+      <td class="obs-cell">${l.obs}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // Listener: troca de status
+  tbody.querySelectorAll('select.status-sel').forEach(sel => {
+    sel.addEventListener('change', e => {
+      const idx = parseInt(e.target.dataset.idx);
+      const novo = e.target.value;
+      const linha = state.resultado.linhas[idx];
+      linha.status = novo;
+      linha.editadoManualmente = true;
+
+      // Se foi marcado como "Não Descontado" ou "Afastado", zera o valor descontado.
+      // Para "Demitido", o usuário decide: informar valor descontado na competência ou manter zero se já antecipado na rescisão.
+      if (novo === 'naodesc' || novo === 'afastado') {
+        linha.valorMov = 0;
+        const inp = document.querySelector(`input.valor-input[data-idx="${idx}"]`);
+        if (inp) inp.value = '0.00';
+      }
+
+      linha.obs = obsParaStatus(linha);
+
+      // Atualizar visual da linha
+      const tr = e.target.closest('tr');
+      tr.className = 'status-' + novo;
+      e.target.className = 'status-sel s-' + novo;
+      const obsCell = tr.querySelector('.obs-cell');
+      if (obsCell) obsCell.textContent = linha.obs;
+      // Cor do input de valor
+      const inp = tr.querySelector('input.valor-input');
+      if (inp) {
+        inp.style.color = (novo === 'naodesc' || novo === 'afastado') ? 'var(--red)'
+                       : (novo === 'parcial' || novo === 'outro' || novo === 'demitido') ? 'var(--orange)'
+                       : 'var(--green)';
+      }
+      atualizarTotalizadores();
+    });
+  });
+
+  // Listener: edição do valor descontado
+  tbody.querySelectorAll('input.valor-input').forEach(inp => {
+    inp.addEventListener('input', e => {
+      const idx = parseInt(e.target.dataset.idx);
+      const novo = Number(e.target.value) || 0;
+      const linha = state.resultado.linhas[idx];
+      linha.valorMov = novo;
+      linha.editadoManualmente = true;
+
+      // Reavalia status automaticamente se ainda estiver num dos 3 modos automáticos (ok/parcial/naodesc)
+      // Não muda se usuário escolheu demitido ou outro manualmente
+      if (linha.status === 'ok' || linha.status === 'parcial' || linha.status === 'naodesc') {
+        const tol = 0.01;
+        let novoStatus;
+        if (novo <= tol) novoStatus = 'naodesc';
+        else if (Math.abs(novo - linha.parcela) <= tol) novoStatus = 'ok';
+        else novoStatus = 'parcial';
+
+        if (novoStatus !== linha.status) {
+          linha.status = novoStatus;
+          const sel = document.querySelector(`select.status-sel[data-idx="${idx}"]`);
+          if (sel) {
+            sel.value = novoStatus;
+            sel.className = 'status-sel s-' + novoStatus;
+          }
+          const tr = e.target.closest('tr');
+          tr.className = 'status-' + novoStatus;
+          e.target.style.color = (novoStatus === 'naodesc') ? 'var(--red)'
+                              : (novoStatus === 'parcial') ? 'var(--orange)'
+                              : 'var(--green)';
+        }
+      }
+
+      linha.obs = obsParaStatus(linha);
+      const tr = e.target.closest('tr');
+      const obsCell = tr.querySelector('.obs-cell');
+      if (obsCell) obsCell.textContent = linha.obs;
+      atualizarTotalizadores();
+    });
+  });
+
+  atualizarTotalizadores();
+  document.getElementById('sectionRecon').style.display = '';
+  document.getElementById('btnExcel').disabled = false;
+}
+
+/* ─── Calcula somente a diferença que não pôde ser descontada ─── */
+function calcularDiferencaNaoDescontada(linha) {
+  const tol = 0.01;
+  const parcela = Number(linha.parcela) || 0;
+  const valor = Number(linha.valorMov) || 0;
+  const diferenca = Math.max(parcela - valor, 0);
+
+  if (diferenca <= tol) return 0;
+
+  switch (linha.status) {
+    case 'parcial':
+    case 'naodesc':
+    case 'afastado':
+    case 'outro':
+      return diferenca;
+    case 'demitido':
+      // Demitido só compõe este total quando houve algum valor informado/descontado
+      // menor que a parcela; demissão zerada não entra no totalizador.
+      return (valor > tol && valor < parcela - tol) ? diferenca : 0;
+    default:
+      return 0;
+  }
+}
+
+/* ─── Atualiza totalizadores em tempo real ─── */
+function atualizarTotalizadores() {
+  if (!state.resultado) return;
+  const linhas = state.resultado.linhas;
+
+  // Contadores por status
+  let ok=0, parcial=0, naodesc=0, demitido=0, afastado=0, outro=0;
+  let totPlanilha = 0;
+  let totMovs = 0;
+  let totNaoDescontado = 0;
+  for (const l of linhas) {
+    const valor = Number(l.valorMov) || 0;
+    const parcela = Number(l.parcela) || 0;
+    totPlanilha += parcela;
+    totMovs     += valor;
+    totNaoDescontado += calcularDiferencaNaoDescontada(l);
+    switch (l.status) {
+      case 'ok':       ok++; break;
+      case 'parcial':  parcial++; break;
+      case 'naodesc':  naodesc++; break;
+      case 'demitido': demitido++; break;
+      case 'afastado': afastado++; break;
+      case 'outro':    outro++; break;
+    }
+  }
+
+  // Resumo cards
+  document.getElementById('resOk').textContent       = ok;
+  document.getElementById('resParcial').textContent  = parcial;
+  document.getElementById('resNaoDesc').textContent  = naodesc;
+  document.getElementById('resDemitido').textContent = demitido;
+  document.getElementById('resAfastado').textContent = afastado;
+  document.getElementById('resOutro').textContent    = outro;
+  document.getElementById('resTotal').textContent    = linhas.length;
+
+  // Totalizadores principais solicitados
+  document.getElementById('totDescontadoEmpregados').textContent = BRL(totMovs);
+  document.getElementById('totDescontosParciais').textContent    = BRL(totNaoDescontado);
+
+  // Footer da tabela
+  document.getElementById('footTotPlanilha').textContent = BRL(totPlanilha);
+  document.getElementById('footTotMovs').textContent     = BRL(totMovs);
+
+  // Banner FGTS Digital = total efetivamente descontado
+  document.getElementById('totalFgts').textContent = BRL(totMovs);
+}
+
+/* ─── Fluxo de upload ─── */
+async function onPlanilhaUpload(file) {
+  try {
+    clearStatus();
+    setStatus(`Lendo planilha "${file.name}"...`, 'info');
+    state.planilhaData = await lerPlanilha(file);
+    const info = document.getElementById('infoPlanilha');
+    info.innerHTML = `✓ ${file.name} — ${state.planilhaData.length} contratos${state.competencia ? ' (comp. ' + state.competencia + ')' : ''}
+      <button class="clear-btn" onclick="limparPlanilha()">Remover</button>`;
+    info.style.display = 'block';
+    document.getElementById('upPlanilha').classList.add('has-file');
+    setStatus(`✓ Planilha lida: ${state.planilhaData.length} contratos.`, 'success');
+    if (state.movData) conciliar();
+  } catch (e) {
+    setStatus('Erro ao ler planilha: ' + e.message, 'error');
+    console.error(e);
+  }
+}
+async function onMovimentosUpload(file) {
+  try {
+    clearStatus();
+    setStatus(`Lendo PDF "${file.name}"...`, 'info');
+    state.movData = await lerMovimentos(file);
+    const totalItems = Object.values(state.movData).reduce((acc, e) => acc + e.items.length, 0);
+    const info = document.getElementById('infoMovimentos');
+    info.innerHTML = `✓ ${file.name} — ${Object.keys(state.movData).length} empregados, ${totalItems} descontos
+      <button class="clear-btn" onclick="limparMovimentos()">Remover</button>`;
+    info.style.display = 'block';
+    document.getElementById('upMovimentos').classList.add('has-file');
+    setStatus(`✓ Movimentos lidos: ${Object.keys(state.movData).length} empregados, ${totalItems} descontos.`, 'success');
+    if (state.planilhaData) conciliar();
+  } catch (e) {
+    setStatus('Erro ao ler PDF: ' + e.message, 'error');
+    console.error(e);
+  }
+}
+function limparPlanilha() {
+  state.planilhaData = null;
+  document.getElementById('filePlanilha').value = '';
+  document.getElementById('infoPlanilha').style.display = 'none';
+  document.getElementById('upPlanilha').classList.remove('has-file');
+  document.getElementById('sectionRecon').style.display = 'none';
+  document.getElementById('btnExcel').disabled = true;
+  state.resultado = null;
+}
+function limparMovimentos() {
+  state.movData = null;
+  document.getElementById('fileMovimentos').value = '';
+  document.getElementById('infoMovimentos').style.display = 'none';
+  document.getElementById('upMovimentos').classList.remove('has-file');
+  document.getElementById('sectionRecon').style.display = 'none';
+  document.getElementById('btnExcel').disabled = true;
+  state.resultado = null;
+}
+function limparTudo() {
+  limparPlanilha();
+  limparMovimentos();
+  clearStatus();
+  state.competencia = null;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Exportação Excel da conciliação
+   ═══════════════════════════════════════════════════════════ */
+function exportarExcel() {
+  if (!state.resultado) return;
+  const wb = XLSX.utils.book_new();
+  const ws = {};
+
+  const C = {
+    azulMarinho:'203764', azulMedio:'4472C4', azulClaro:'D9E1F2',
+    cinza:'EDEDED', amarelo:'FFFFE0', branco:'FFFFFF', preto:'000000',
+    bordaSuave:'BFBFBF', bordaForte:'000000',
+    okBg:'D1FAE5', okInk:'065F46',
+    parcBg:'FEF3C7', parcInk:'92400E',
+    ndBg:'FEE2E2', ndInk:'991B1B'
+  };
+  const fontBase  = {name:'Verdana', sz:9, color:{rgb:C.preto}};
+  const fontBold  = {name:'Verdana', sz:9, color:{rgb:C.preto}, bold:true};
+  const fontWhite = {name:'Verdana', sz:9, color:{rgb:C.branco}, bold:true};
+  const fontAzul  = {name:'Verdana', sz:9, color:{rgb:C.azulMarinho}, bold:true};
+  const bThin = {style:'thin', color:{rgb:C.bordaSuave}};
+  const bFull = {top:bThin, bottom:bThin, left:bThin, right:bThin};
+  const bBot  = {bottom:{style:'medium', color:{rgb:C.azulMarinho}}};
+
+  const sTitle = {font:fontWhite, fill:{patternType:'solid',fgColor:{rgb:C.azulMarinho}}, alignment:{horizontal:'center',vertical:'center'}, border:bFull};
+  const sSection = {font:fontAzul, alignment:{horizontal:'left',vertical:'center'}, border:bBot};
+  const sColHeader = {font:fontWhite, fill:{patternType:'solid',fgColor:{rgb:C.azulMedio}}, alignment:{horizontal:'center',vertical:'center'}, border:bFull};
+  const sCellL = {font:fontBase, alignment:{horizontal:'left',vertical:'center', wrapText:true}, border:bFull};
+  const sCellC = {font:fontBase, alignment:{horizontal:'center',vertical:'center'}, border:bFull};
+  const sCellR = {font:fontBase, alignment:{horizontal:'right',vertical:'center'}, border:bFull};
+  const sCellBold = {font:fontBold, alignment:{horizontal:'left',vertical:'center'}, border:bFull};
+  const sTotal = {font:fontAzul, fill:{patternType:'solid',fgColor:{rgb:C.azulClaro}}, alignment:{horizontal:'right',vertical:'center'}, border:{top:{style:'medium'},bottom:{style:'medium'},left:bThin,right:bThin}};
+  const sTotalL = {font:fontAzul, fill:{patternType:'solid',fgColor:{rgb:C.azulClaro}}, alignment:{horizontal:'left',vertical:'center'}, border:{top:{style:'medium'},bottom:{style:'medium'},left:bThin,right:bThin}};
+  const sFgts = {font:fontWhite, fill:{patternType:'solid',fgColor:{rgb:C.azulMarinho}}, alignment:{horizontal:'right',vertical:'center'}, border:bFull};
+  const sFgtsL = {font:fontWhite, fill:{patternType:'solid',fgColor:{rgb:C.azulMarinho}}, alignment:{horizontal:'left',vertical:'center'}, border:bFull};
+
+  const corStatus = {
+    ok:       { bg:'D1FAE5', ink:'065F46', label:'DESCONTO TOTAL' },
+    parcial:  { bg:'FEF3C7', ink:'92400E', label:'DESCONTO PARCIAL' },
+    naodesc:  { bg:'FEE2E2', ink:'991B1B', label:'NÃO DESCONTADO' },
+    demitido: { bg:'F3E8FF', ink:'6B21A8', label:'DEMITIDO' },
+    afastado: { bg:'CCFBF1', ink:'0F766E', label:'AFASTADO' },
+    outro:    { bg:'F1F5F9', ink:'475569', label:'OUTRO' },
+  };
+
+  const setCell = (ref, opts) => { ws[ref] = opts; };
+  const txt   = (r, v, s) => setCell(r, {t:'s', v: v==null?'':String(v), s});
+  const numr  = (r, v, s) => setCell(r, {t:'n', v: Number(v)||0, z:'"R$" #,##0.00', s});
+
+  // Estilos extras para totalizadores Planilha vs Movimentos
+  const sTotPlanLbl = {font:{name:'Verdana',sz:9,bold:true,color:{rgb:'1E3A8A'}}, fill:{patternType:'solid',fgColor:{rgb:'DBEAFE'}}, alignment:{horizontal:'left',vertical:'center'}, border:bFull};
+  const sTotPlanVal = {font:{name:'Verdana',sz:9,bold:true,color:{rgb:'1E3A8A'}}, fill:{patternType:'solid',fgColor:{rgb:'DBEAFE'}}, alignment:{horizontal:'right',vertical:'center'}, border:bFull};
+  const sTotMovsLbl = {font:{name:'Verdana',sz:9,bold:true,color:{rgb:'15803D'}}, fill:{patternType:'solid',fgColor:{rgb:'DCFCE7'}}, alignment:{horizontal:'left',vertical:'center'}, border:bFull};
+  const sTotMovsVal = {font:{name:'Verdana',sz:9,bold:true,color:{rgb:'15803D'}}, fill:{patternType:'solid',fgColor:{rgb:'DCFCE7'}}, alignment:{horizontal:'right',vertical:'center'}, border:bFull};
+
+  // Colunas
+  ws['!cols'] = [
+    {wch: 3},   // A margem
+    {wch: 9},   // B código
+    {wch: 32},  // C colaborador
+    {wch: 16},  // D cpf
+    {wch: 22},  // E contrato planilha
+    {wch: 22},  // F contrato movimentos
+    {wch: 14},  // G parcela planilha
+    {wch: 14},  // H valor movimentos
+    {wch: 18},  // I status
+    {wch: 52},  // J observação
+    {wch: 3},   // K margem
+  ];
+  ws['!merges'] = [];
+  ws['!rows'] = [];
+
+  // ═══ Título ═══
+  txt('B2', `CONCILIAÇÃO — CRÉDITO DO TRABALHADOR${state.competencia?' — '+state.competencia:''}`, sTitle);
+  for (let c = 2; c <= 9; c++) setCell(XLSX.utils.encode_cell({r:1, c}), {t:'s', v:'', s:sTitle});
+  ws['!merges'].push({s:{r:1,c:1}, e:{r:1,c:9}});
+  ws['!rows'][1] = {hpt:24};
+
+  // Calcular totais e contadores a partir do estado ATUAL (com edições do usuário)
+  const r = state.resultado;
+  let totPlanilha = 0, totMovs = 0;
+  let cOk=0, cParc=0, cNd=0, cDem=0, cAfa=0, cOut=0;
+  for (const l of r.linhas) {
+    totPlanilha += Number(l.parcela) || 0;
+    totMovs     += Number(l.valorMov) || 0;
+    switch (l.status) {
+      case 'ok':       cOk++;  break;
+      case 'parcial':  cParc++; break;
+      case 'naodesc':  cNd++;  break;
+      case 'demitido': cDem++; break;
+      case 'afastado': cAfa++; break;
+      case 'outro':    cOut++; break;
+    }
+  }
+  const dif = totPlanilha - totMovs;
+  const totNaoDescontado = r.linhas.reduce((acc, l) => acc + calcularDiferencaNaoDescontada(l), 0);
+
+  // ═══ Resumo ═══
+  txt('B4', '1. RESUMO', sSection);
+  for (let c = 2; c <= 9; c++) setCell(XLSX.utils.encode_cell({r:3, c}), {t:'s', v:'', s:{border:bBot}});
+  ws['!merges'].push({s:{r:3,c:1}, e:{r:3,c:9}});
+
+  const resumoItems = [
+    ['Total de contratos:',   r.linhas.length],
+    ['Desconto Total:',       cOk],
+    ['Desconto Parcial:',     cParc],
+    ['Não Descontado:',       cNd],
+    ['Demitido:',             cDem],
+    ['Afastado:',             cAfa],
+    ['Outro:',                cOut],
+  ];
+  resumoItems.forEach((it, i) => {
+    const rr = 5 + i;
+    txt(XLSX.utils.encode_cell({r:rr, c:1}), it[0], sCellBold);
+    txt(XLSX.utils.encode_cell({r:rr, c:2}), it[1], sCellC);
+    for (let c=3; c<=9; c++) setCell(XLSX.utils.encode_cell({r:rr, c}), {t:'s', v:'', s:{border:{bottom:bThin}}});
+  });
+
+  // ═══ Tabela de conciliação ═══
+  const startTab = 5 + resumoItems.length + 2;  // espaço após resumo
+  txt(`B${startTab}`, '2. DETALHAMENTO POR CONTRATO', sSection);
+  for (let c = 2; c <= 9; c++) setCell(XLSX.utils.encode_cell({r:startTab-1, c}), {t:'s', v:'', s:{border:bBot}});
+  ws['!merges'].push({s:{r:startTab-1,c:1}, e:{r:startTab-1,c:9}});
+
+  // Header
+  const heads = ['Código','Colaborador','CPF','Nº Contrato (Planilha)','Nº Contrato (Movimentos)','Parcela (Planilha)','Desc. (Movimentos)','Status','Observação'];
+  heads.forEach((h, i) => {
+    setCell(XLSX.utils.encode_cell({r:startTab+1, c:1+i}), {t:'s', v:h, s:sColHeader});
+  });
+  ws['!rows'][startTab+1] = {hpt:28};
+
+  // Linhas
+  r.linhas.forEach((l, i) => {
+    const rr = startTab + 2 + i;
+    const cor = corStatus[l.status] || corStatus.outro;
+    const fillRow = {patternType:'solid', fgColor:{rgb:cor.bg}};
+    const sFill = (base) => ({...base, fill: fillRow});
+    const sFillTxt = (base) => ({...base, fill: fillRow, font:{...base.font, color:{rgb:cor.ink}}});
+
+    txt(XLSX.utils.encode_cell({r:rr, c:1}), l.codigo || '', sFill(sCellC));
+    txt(XLSX.utils.encode_cell({r:rr, c:2}), l.nome, sFill({...sCellL, font:fontBold}));
+    txt(XLSX.utils.encode_cell({r:rr, c:3}), fmtCPF(l.cpf), sFill(sCellC));
+    txt(XLSX.utils.encode_cell({r:rr, c:4}), l.contratoPlan, sFill(sCellL));
+    txt(XLSX.utils.encode_cell({r:rr, c:5}), l.contratoMov || '—', sFill(sCellL));
+    numr(XLSX.utils.encode_cell({r:rr, c:6}), l.parcela, sFill(sCellR));
+    numr(XLSX.utils.encode_cell({r:rr, c:7}), l.valorMov, sFillTxt(sCellR));
+    txt(XLSX.utils.encode_cell({r:rr, c:8}), cor.label, sFillTxt({...sCellC, font:fontBold}));
+    txt(XLSX.utils.encode_cell({r:rr, c:9}), l.obs, sFill(sCellL));
+  });
+
+  // Totalizadores solicitados (linha imediatamente após a tabela)
+  const rTot = startTab + 2 + r.linhas.length;
+  txt(XLSX.utils.encode_cell({r:rTot, c:1}), 'TOTAL DESCONTADO DOS EMPREGADOS', sTotMovsLbl);
+  for (let c=2; c<=6; c++) setCell(XLSX.utils.encode_cell({r:rTot, c}), {t:'s', v:'', s:sTotMovsLbl});
+  ws['!merges'].push({s:{r:rTot, c:1}, e:{r:rTot, c:6}});
+  numr(XLSX.utils.encode_cell({r:rTot, c:7}), totMovs, sTotMovsVal);
+  txt(XLSX.utils.encode_cell({r:rTot+1, c:1}), 'TOTAL DAS DIFERENÇAS NÃO DESCONTADAS', sTotPlanLbl);
+  for (let c=2; c<=6; c++) setCell(XLSX.utils.encode_cell({r:rTot+1, c}), {t:'s', v:'', s:sTotPlanLbl});
+  ws['!merges'].push({s:{r:rTot+1, c:1}, e:{r:rTot+1, c:6}});
+  numr(XLSX.utils.encode_cell({r:rTot+1, c:7}), totNaoDescontado, sTotPlanVal);
+  ws['!rows'][rTot] = {hpt:22};
+  ws['!rows'][rTot+1] = {hpt:22};
+
+  // Banner FGTS Digital
+  const rFg = rTot + 3;
+  txt(XLSX.utils.encode_cell({r:rFg, c:1}), 'VALOR A RECOLHER NA GUIA DO FGTS DIGITAL:', sFgtsL);
+  for (let c=2; c<=6; c++) setCell(XLSX.utils.encode_cell({r:rFg, c}), {t:'s', v:'', s:sFgtsL});
+  ws['!merges'].push({s:{r:rFg, c:1}, e:{r:rFg, c:6}});
+  numr(XLSX.utils.encode_cell({r:rFg, c:7}), totMovs, sFgts);
+  setCell(XLSX.utils.encode_cell({r:rFg, c:8}), {t:'s', v:'', s:sFgts});
+  setCell(XLSX.utils.encode_cell({r:rFg, c:9}), {t:'s', v:'', s:sFgts});
+  ws['!merges'].push({s:{r:rFg, c:8}, e:{r:rFg, c:9}});
+  ws['!rows'][rFg] = {hpt:28};
+
+  ws['!ref'] = XLSX.utils.encode_range({s:{r:0,c:0}, e:{r:rFg+2, c:10}});
+
+  XLSX.utils.book_append_sheet(wb, ws, 'Conciliação FGTS');
+
+  const compStr = state.competencia ? state.competencia.replace('/','-') : 'sem-comp';
+  const nomeArq = `Conciliacao_Credito_Trabalhador_${compStr}.xlsx`;
+
+  try {
+    const buf = XLSX.write(wb, {bookType:'xlsx', type:'array'});
+    const u8 = new Uint8Array(buf);
+    const files = fflate.unzipSync(u8);
+    const dec = new TextDecoder();
+    const enc = new TextEncoder();
+    for (const fname of Object.keys(files)) {
+      if (/xl\/worksheets\/sheet\d+\.xml$/.test(fname)) {
+        let xml = dec.decode(files[fname]);
+        xml = xml.replace(/<sheetView ([^>]*?)\/>/g, (m, attrs) =>
+          m.includes('showGridLines') ? m : `<sheetView showGridLines="0" ${attrs}/>`);
+        xml = xml.replace(/<sheetView ([^>]*?)>/g, (m, attrs) =>
+          (m.includes('showGridLines') || m.endsWith('/>')) ? m : `<sheetView showGridLines="0" ${attrs}>`);
+        files[fname] = enc.encode(xml);
+      }
+    }
+    const out = fflate.zipSync(files);
+    const blob = new Blob([out], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = nomeArq;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch (e) {
+    console.error('Patch gridlines falhou:', e);
+    XLSX.writeFile(wb, nomeArq);
+  }
+}
+
+/* ─── Listeners ─── */
+document.addEventListener('DOMContentLoaded', () => {
+  const fp = document.getElementById('filePlanilha');
+  const fm = document.getElementById('fileMovimentos');
+  fp.addEventListener('change', e => { if (e.target.files[0]) onPlanilhaUpload(e.target.files[0]); });
+  fm.addEventListener('change', e => { if (e.target.files[0]) onMovimentosUpload(e.target.files[0]); });
+
+  // Drag and drop
+  ['upPlanilha','upMovimentos'].forEach(id => {
+    const el = document.getElementById(id);
+    el.addEventListener('dragover', e => { e.preventDefault(); el.classList.add('drag-over'); });
+    el.addEventListener('dragleave', () => el.classList.remove('drag-over'));
+    el.addEventListener('drop', e => {
+      e.preventDefault(); el.classList.remove('drag-over');
+      const file = e.dataTransfer.files[0];
+      if (!file) return;
+      if (id === 'upPlanilha') onPlanilhaUpload(file);
+      else onMovimentosUpload(file);
+    });
+  });
+
+  document.getElementById('btnExcel').addEventListener('click', exportarExcel);
+  document.getElementById('btnLimpar').addEventListener('click', limparTudo);
+});
+</script>
+</body>
+</html>
