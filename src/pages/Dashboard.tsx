@@ -61,6 +61,17 @@ function PeopleIcon({ color }: { color: string }) {
   )
 }
 
+function ScalesIcon({ color }: { color: string }) {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="12" y1="3" x2="12" y2="21"/>
+      <path d="M3 9l9-6 9 6"/>
+      <path d="M3 15a3 3 0 0 0 6 0l-3-6-3 6z"/>
+      <path d="M15 15a3 3 0 0 0 6 0l-3-6-3 6z"/>
+    </svg>
+  )
+}
+
 const tools: Tool[] = [
   {
     title: 'Custo Empregado Doméstico',
@@ -101,6 +112,14 @@ const tools: Tool[] = [
     iconBg: '#fff7ed',
     iconColor: '#ea580c',
     icon: <PeopleIcon color="#ea580c" />,
+  },
+  {
+    title: 'Conciliador de Crédito',
+    desc: 'Concilia a planilha eSocial de Crédito do Trabalhador com os Movimentos da folha e gera guia do FGTS Digital.',
+    route: '/conciliador-credito',
+    iconBg: '#fff7ed',
+    iconColor: '#c2410c',
+    icon: <ScalesIcon color="#c2410c" />,
   },
 ]
 

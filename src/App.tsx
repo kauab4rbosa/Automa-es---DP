@@ -5,6 +5,7 @@ import CalculadoraHoras from './pages/CalculadoraHoras'
 import CalculadoraIRRF from './pages/CalculadoraIRRF'
 import CalculadoraJornada from './pages/CalculadoraJornada'
 import CustoEmpregado from './pages/CustoEmpregado'
+import ConciliadorCredito from './pages/ConciliadorCredito'
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
         <Route path="/calculadora-irrf" element={<CalculadoraIRRF />} />
         <Route path="/calculadora-jornada" element={<CalculadoraJornada />} />
         <Route path="/custo-empregado" element={<CustoEmpregado />} />
+        <Route path="/conciliador-credito" element={<ConciliadorCredito />} />
       </Routes>
     </BrowserRouter>
   )

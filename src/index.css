@@ -1050,3 +1050,76 @@ table.demo tfoot td:last-child { text-align: right; }
     padding: 16px;
   }
 }
+
+/* ─── Conciliador ─── */
+.instrucoes { background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:14px 16px; font-size:12.5px; color:#1e3a8a; line-height:1.6; margin-bottom:0; }
+.instrucoes strong { font-weight:700; }
+.instrucoes ol { margin:6px 0 0 20px; }
+.instrucoes li { margin-bottom:3px; }
+.instrucoes code { background:rgba(30,58,138,.08); padding:1px 6px; border-radius:4px; font-family:'Courier New',monospace; font-size:12px; }
+.upload-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+.uploader { border:2px dashed var(--card-border); border-radius:10px; padding:22px 18px; text-align:center; transition:border-color .15s,background .15s; background:#fafafa; cursor:pointer; position:relative; }
+.uploader:hover { border-color:var(--blue); background:#f0f7ff; }
+.uploader.has-file { border-color:var(--green-bright); background:#ecfdf5; border-style:solid; }
+.uploader.drag-over { border-color:var(--blue); background:#dbeafe; }
+.uploader .icon { width:44px; height:44px; border-radius:50%; background:rgba(37,99,235,.1); color:var(--blue); display:flex; align-items:center; justify-content:center; margin:0 auto 10px; }
+.uploader.has-file .icon { background:rgba(22,163,74,.12); color:var(--green-hover); }
+.uploader .icon svg { width:22px; height:22px; }
+.uploader .title-up { font-size:14px; font-weight:700; color:var(--ink); margin-bottom:4px; }
+.uploader .hint { font-size:12px; color:var(--ink-muted); line-height:1.4; }
+.uploader input[type="file"] { position:absolute; inset:0; opacity:0; cursor:pointer; }
+.file-info { margin-top:10px; font-size:12px; color:var(--green-hover); font-weight:600; word-break:break-all; }
+.file-info .clear-btn { background:transparent; border:1px solid var(--red); color:var(--red); padding:3px 10px; border-radius:5px; cursor:pointer; font-size:11px; font-weight:600; margin-left:8px; font-family:inherit; }
+.file-info .clear-btn:hover { background:var(--red); color:#fff; }
+.status-msg { padding:10px 14px; border-radius:8px; font-size:13px; font-weight:500; margin-bottom:14px; }
+.status-info    { background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe; }
+.status-error   { background:#fef2f2; color:#991b1b; border:1px solid #fecaca; }
+.status-success { background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; }
+.status-warn    { background:#fffbeb; color:#92400e; border:1px solid #fde68a; }
+table.recon { width:100%; border-collapse:collapse; background:#fff; font-size:12.5px; font-variant-numeric:tabular-nums; }
+table.recon thead th { background:var(--header-bg); color:#fff; font-weight:700; font-size:11px; padding:11px 8px; text-align:left; letter-spacing:.02em; line-height:1.25; position:sticky; top:0; z-index:1; text-transform:uppercase; }
+table.recon tbody td { padding:9px 8px; border-bottom:1px solid var(--row-border); vertical-align:middle; background:#fff; }
+table.recon tbody td.right { text-align:right; font-weight:600; }
+table.recon tbody td.center { text-align:center; }
+table.recon tbody tr.status-ok td { background:#f0fdf4; }
+table.recon tbody tr.status-parcial td { background:#fffbeb; }
+table.recon tbody tr.status-naodesc td { background:#fef2f2; }
+table.recon tbody tr.status-demitido td { background:#faf5ff; }
+table.recon tbody tr.status-afastado td { background:#f0fdfa; }
+table.recon tbody tr.status-outro td { background:#f8fafc; }
+.badge-status { display:inline-block; padding:3px 9px; border-radius:12px; font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; white-space:nowrap; }
+.badge-ok { background:#bbf7d0; color:#166534; }
+.badge-parcial { background:#fde68a; color:#92400e; }
+.badge-naodesc { background:#fecaca; color:#991b1b; }
+.resumo { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:12px; margin-top:18px; }
+.resumo-card { background:#f9fafb; border:1px solid var(--card-border); border-radius:8px; padding:14px; }
+.resumo-card .lbl { font-size:11px; font-weight:600; color:var(--ink-muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:4px; }
+.resumo-card .val { font-size:18px; font-weight:700; color:var(--ink); font-variant-numeric:tabular-nums; }
+.resumo-card.ok .val { color:var(--green); }
+.resumo-card.parcial .val { color:#f59e0b; }
+.resumo-card.naodesc .val { color:var(--red); }
+.resumo-card.demitido .val { color:#6b21a8; }
+.resumo-card.afastado .val { color:#0f766e; }
+.resumo-card.outro .val { color:#475569; }
+.resumo-card.total .val { color:var(--blue); font-size:22px; }
+.totalizadores { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:18px; }
+.tot-card { border-radius:10px; padding:16px 18px; border:1px solid; }
+.tot-card .tot-lbl { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; margin-bottom:6px; }
+.tot-card .tot-val { font-size:22px; font-weight:700; font-variant-numeric:tabular-nums; margin-bottom:4px; }
+.tot-card .tot-desc { font-size:11px; opacity:.8; line-height:1.4; }
+.tot-descontado { background:#f0fdf4; border-color:#bbf7d0; color:#14532d; }
+.tot-parciais { background:#fffbeb; border-color:#fde68a; color:#92400e; }
+.fgts-banner { margin-top:20px; background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 100%); color:#fff; padding:20px 24px; border-radius:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; }
+.fgts-banner .lbl { font-size:12px; text-transform:uppercase; letter-spacing:.08em; opacity:.85; margin-bottom:4px; }
+.fgts-banner .val { font-size:26px; font-weight:700; font-variant-numeric:tabular-nums; }
+.fgts-banner .desc { font-size:12.5px; opacity:.85; max-width:480px; line-height:1.5; }
+select.status-sel, input.valor-input { width:100%; padding:5px 8px; font-size:12px; border:1px solid var(--input-border); border-radius:5px; background:rgba(255,255,255,.85); font-family:inherit; font-weight:600; color:var(--ink); cursor:pointer; font-variant-numeric:tabular-nums; }
+select.status-sel:focus, input.valor-input:focus { outline:none; border-color:var(--blue); box-shadow:0 0 0 2px rgba(37,99,235,.18); background:#fff; }
+input.valor-input { text-align:right; }
+select.s-ok { color:#166534; border-color:#86efac; background:#f0fdf4; }
+select.s-parcial { color:#92400e; border-color:#fcd34d; background:#fffbeb; }
+select.s-naodesc { color:#991b1b; border-color:#fca5a5; background:#fef2f2; }
+select.s-demitido { color:#6b21a8; border-color:#c4b5fd; background:#faf5ff; }
+select.s-afastado { color:#0f766e; border-color:#5eead4; background:#f0fdfa; }
+select.s-outro { color:#475569; border-color:#cbd5e1; background:#f8fafc; }
+@media (max-width:900px) { .upload-grid { grid-template-columns:1fr; } .totalizadores { grid-template-columns:1fr; } table.recon { min-width:900px; } }
